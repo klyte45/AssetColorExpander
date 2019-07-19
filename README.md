@@ -15,6 +15,11 @@ This mod allows to have more than 4 colors variations per building, if it allow 
   <bce coloringMode="PASTEL_ORIG" assetName="7894567987.WorkshopItem_Data"/>
 </bceConfig>
 ```
+## File name
+
+It can be named by any name in AppData's folder, but must have the `.xml` extension.
+Inside the asset folder to export to the Workshop, the file **must** be named as `k45_bce_data.xml`.
+
 
 ## Attributes
 ### `coloringMode`
@@ -23,7 +28,7 @@ It tells the mod which kind of coloring will be used to pick the color. There ar
 + `LIST`: Will get one color from the list of `<color>` tags inside this tag to paint the building. Ignored if there's no colors declared;
 + `PASTEL_ORIG`: Will use the default pastel color generator. All colors have a minimal difference between them. Note the `pastelConfig` attribute have **NO** effect when using this mode;
 + `PASTEL_HIGHER_SATURATION`: Same of above, but with a slight saturation difference that makes the colors seems vivid. 
-+ `PASTEL_FULL_VIVID`: Same of above but with a stronger saturation add. The overall visual will seems like cartoon as result.
++ `PASTEL_FULL_VIVID`: Same of above but with a stronger saturation add.
 
 ### `pastelConfig` (Only works with `coloringMode="PASTEL_HIGHER_SATURATION"` and `coloringMode="PASTEL_FULL_VIVID"`)
 
@@ -53,7 +58,6 @@ This field sets which assets will be affected by this. Currently supports 4 kind
 + Asset full name: The full name of asset. Note the name of the uploaded asset is **different** from the local edition name;
 + Building AI class name: It'll affect all buildings that uses this class to behave in the game (Examples: TrainStationAI, CommercialBuildingAI, HarborAI...);
 + `__ZONED__` special keyword: All RICO buildings will be affected by this configuration; 
-+ `*` special keyword: All buildings will be affected by this configuration as callback;
 
 ## Future
 
