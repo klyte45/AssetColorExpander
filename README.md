@@ -59,6 +59,14 @@ This field sets which assets will be affected by this. Currently supports 4 kind
 + Building AI class name: It'll affect all buildings that uses this class to behave in the game (Examples: TrainStationAI, CommercialBuildingAI, HarborAI...);
 + `__ZONED__` special keyword: All RICO buildings will be affected by this configuration; 
 
+## Recommended xml file for fallback
+```xml
+<bceConfig>
+<bce coloringMode="PASTEL_FULL_VIVID" pastelConfig="AVOID_NEUTRALS_REDS" assetName="__ZONED__" />
+</bceConfig> 
+```
+Put this content at the `fallback.xml` file in the configuration folder to see this mod working. It's not mandatory. There's a button in the mod options config screen in mod menu that drives you to the mod configuration folder.
+
 ## Future
 
 Feel free to add suggestions or branch this mod to pull request expansions. I'm now looking to GitHub with some frequency and I will update this mod as soon this get some new stuff.
