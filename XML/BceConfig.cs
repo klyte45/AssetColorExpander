@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Klyte.Commons.Interfaces;
 using System.Xml.Serialization;
 
 namespace Klyte.BuildingColorExpander.XML
 {
     [XmlRoot(ElementName = "bceConfig")]
-    public class BceConfig
+    public class BCEConfig<D> : ILibableAsContainer<D> where D : BasicColorConfigurationXml, new()
     {
-        [XmlElement(ElementName = "bce")]
-        public List<ColorConfigurationXml> ConfigList { get; set; }
+        [XmlAttribute("rulesetName")]
+        public override string SaveName { get; set; }
+        public bool Where { get; internal set; }
     }
 }

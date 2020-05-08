@@ -60,6 +60,12 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <Compile Include="Overrides\BCEOverrides.cs" />
+    <Compile Include="commons\Interfaces\ILibableAsContainer.cs" />
+    <Compile Include="Data\BCEConfigRulesData.cs" />
+    <Compile Include="Libraries\BCEConfigLib.cs" />
+    <Compile Include="Libraries\BCERulesetConfigLib.cs" />
+    <Compile Include="UI\BCEPanel.cs" />
     <Compile Include="CommonProperties.cs" />
     <Compile Include="BuildingColorExpanderMod.cs" />
     <Compile Include="commons\Extensors\Redirector.cs" />
@@ -90,6 +96,9 @@
     <Compile Include="commons\Interfaces\Warehouse\ExtensorContainer.cs" />
     <Compile Include="commons\Interfaces\Warehouse\IDataExtensor.cs" />
     <Compile Include="commons\Interfaces\Warehouse\IDataExtensorLegacy.cs" />
+    <Compile Include="commons\Libraries\LibBaseFile.cs" />
+    <Compile Include="commons\Libraries\BasicLib.cs" />
+    <Compile Include="commons\Libraries\LibBaseData.cs" />
     <Compile Include="commons\Redirectors\UIDynamicFontRendererRedirector.cs" />
     <Compile Include="commons\Redirectors\UIDynamicPanelsRedirector.cs" />
     <Compile Include="commons\Redirectors\UIViewRedirector.cs" />
@@ -153,9 +162,15 @@
     <Compile Include="commons\Utils\VehicleUtils.cs" />
     <Compile Include="commons\Utils\XmlUtils.cs" />
     <Compile Include="commons\Utils\ZipUtils.cs" />
-    <Compile Include="XML\BceConfig.cs" />
+    <Compile Include="UI\Editor\WTSRoadCornerEditorDetailTabs.cs" />
+    <Compile Include="commons\UI\BasicRulesList.cs" />
+    <Compile Include="commons\UI\DefaultEditorUILib.cs" />
+    <Compile Include="XML\AssetFolderRulesXml.cs" />
+    <Compile Include="XML\BCEConfig.cs" />
+    <Compile Include="XML\CityDataRulesXml.cs" />
     <Compile Include="XML\ColorConfigurationXml.cs" />
     <Compile Include="XML\ColoringMode.cs" />
+    <Compile Include="XML\RuleCheckType.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="commons\UI\i18n\en.properties" />
