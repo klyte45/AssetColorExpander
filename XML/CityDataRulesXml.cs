@@ -32,11 +32,13 @@ namespace Klyte.BuildingColorExpander.XML
                     case RuleCheckType.ITEM_CLASS:
                         return info.m_class.name == ItemClassName;
                     case RuleCheckType.SERVICE:
-                        return info.m_class.m_service == Service;
+                        return Service == ItemClass.Service.None || info.m_class.m_service == Service;
                     case RuleCheckType.SERVICE_SUBSERVICE:
-                        return info.m_class.m_service == Service && info.m_class.m_subService == SubService;
+                        return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_subService == SubService;
                     case RuleCheckType.SERVICE_LEVEL:
-                        return info.m_class.m_service == Service && info.m_class.m_level == Level;
+                        return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_level == Level;
+                    case RuleCheckType.SERVICE_SUBSERVICE_LEVEL:
+                        return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_subService == SubService && info.m_class.m_level == Level;
                     case RuleCheckType.ASSET_NAME:
                         return info.name == AssetName;
                 }

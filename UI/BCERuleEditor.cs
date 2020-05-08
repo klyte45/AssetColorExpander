@@ -43,12 +43,15 @@ namespace Klyte.BuildingColorExpander.UI
         private UIListBox m_popup;
 
 
-        private UIDropDown m_pastelConfig;
         private UIDropDown m_colorMode;
         private UIPanel m_listColorContainer;
         private UIScrollablePanel m_colorListScroll;
         private UITemplateList<UIPanel> m_colorFieldTemplateListColors;
         private UIButton m_addColor;
+        private UICheckBox m_allowRed;
+        private UICheckBox m_allowGreen;
+        private UICheckBox m_allowBlues;
+        private UICheckBox m_allowNeutral;
 
         private UICheckBox m_districtWhiteList;
         private UICheckBox m_districtBlackList;
@@ -83,7 +86,7 @@ namespace Klyte.BuildingColorExpander.UI
             helperSettings.AddSpace(5);
 
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckType)).Select(x => Locale.Get("K45_BCE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
-            AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_SERVICEFILTER"), out m_service, helperSettings, Enum.GetNames(typeof(ItemClass.Service)).Select(x => $"{x}").ToArray(), OnChangeServiceFilter);
+            AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_SERVICEFILTER"), out m_service, helperSettings, (Enum.GetValues(typeof(ItemClass.Service)) as ItemClass.Service[]).OrderBy(x => (int)x).Select(x => x == 0 ? Locale.Get("K45_BCE_ANYSERVICE_OPTION") : $"{x}").ToArray(), OnChangeServiceFilter);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_SUBSERVICEFILTER"), out m_subService, helperSettings, Enum.GetNames(typeof(ItemClass.SubService)).Select(x => $"{x}").ToArray(), OnChangeSubServiceFilter);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_LEVELFILTER"), out m_level, helperSettings, (Enum.GetValues(typeof(ItemClass.Level)) as ItemClass.Level[]).OrderBy(x => (int)x).Select(x => $"{x}").ToArray(), OnChangeLevelFilter);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_CLASSFILTER"), out m_class, helperSettings, new string[0], OnChangeClassFilter);
@@ -91,11 +94,18 @@ namespace Klyte.BuildingColorExpander.UI
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
             m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, FilterBuildingByText, OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup.height = 290;
+            m_popup.width -= 20;
 
             AddLibBox<BCEConfigLib, CityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_COLORMODE"), out m_colorMode, helperAppearence, Enum.GetNames(typeof(ColoringMode)).Select(x => Locale.Get("K45_BCE_COLORINGMODE", x)).ToArray(), OnChangeColoringMode);
-            AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_PASTELGENTYPE"), out m_pastelConfig, helperAppearence, Enum.GetNames(typeof(PastelConfig)).Select(x => Locale.Get("K45_BCE_PASTELCONFIG", x)).ToArray(), OnChangePastelConfig);
+            AddCheckboxLocale("K45_BCE_BUILDINGRULES_ALLOWREDTONES", out m_allowRed, helperAppearence, OnAllowRedChanged);
+            AddCheckboxLocale("K45_BCE_BUILDINGRULES_ALLOWGREENTONES", out m_allowGreen, helperAppearence, OnAllowGreenChanged);
+            AddCheckboxLocale("K45_BCE_BUILDINGRULES_ALLOWBLUETONES", out m_allowBlues, helperAppearence, OnAllowBlueChanged);
+            AddCheckboxLocale("K45_BCE_BUILDINGRULES_ALLOWNEUTRALTONES", out m_allowNeutral, helperAppearence, OnAllowNeutralChanged);
+
+
             KlyteMonoUtils.CreateUIElement(out m_listColorContainer, helperAppearence.Self.transform, "listColors", new UnityEngine.Vector4(0, 0, helperAppearence.Self.width, helperAppearence.Self.height - 80));
             KlyteMonoUtils.CreateScrollPanel(m_listColorContainer, out m_colorListScroll, out _, m_listColorContainer.width - 20, m_listColorContainer.height);
             m_colorListScroll.backgroundSprite = "OptionsScrollbarTrack";
@@ -295,7 +305,18 @@ namespace Klyte.BuildingColorExpander.UI
                             {
                                 if (!m_isLoadingColors && z.m_colorList.Count > x.parent.zOrder)
                                 {
-                                    z.m_colorList[x.parent.zOrder] = y;
+                                    m_isLoadingColors = true;
+                                    if (y == default)
+                                    {
+                                        z.m_colorList.RemoveAt(x.parent.zOrder);
+                                        UpdateColorList(ref z);
+                                    }
+                                    else
+                                    {
+                                        z.m_colorList[x.parent.zOrder] = y;
+                                    }
+                                    BuildingManager.instance.UpdateBuildingColors();
+                                    m_isLoadingColors = false;
                                 }
                             });
                     colorField.eventColorPickerOpen += KlyteMonoUtils.DefaultColorPickerHandler;
@@ -339,6 +360,7 @@ namespace Klyte.BuildingColorExpander.UI
             {
                 action(ref BCEConfigRulesData.Instance.Rules.m_dataArray[effTargetTab]);
                 BuildingColorExpanderMod.Controller.CleanCache();
+                BuildingManager.instance.UpdateBuildingColors();
             }
         }
         private void OnChangeTab(int obj)
@@ -372,7 +394,10 @@ namespace Klyte.BuildingColorExpander.UI
                 ApplyRuleCheck(x);
 
                 m_colorMode.selectedIndex = (int)x.ColoringMode;
-                m_pastelConfig.selectedIndex = (int)x.PastelConfig;
+                m_allowRed.isChecked = (x.PastelConfig & PastelConfig.AVOID_REDS) == 0;
+                m_allowGreen.isChecked = (x.PastelConfig & PastelConfig.AVOID_GREENS) == 0;
+                m_allowBlues.isChecked = (x.PastelConfig & PastelConfig.AVOID_BLUES) == 0;
+                m_allowNeutral.isChecked = (x.PastelConfig & PastelConfig.AVOID_NEUTRALS) == 0;
                 UpdateColorList(ref x);
 
                 ApplyColorUIRules(x);
@@ -383,7 +408,11 @@ namespace Klyte.BuildingColorExpander.UI
 
         private void ApplyColorUIRules(CityDataRuleXml x)
         {
-            m_pastelConfig.parent.isVisible = x.ColoringMode == ColoringMode.PASTEL_FULL_VIVID || x.ColoringMode == ColoringMode.PASTEL_HIGHER_SATURATION || x.ColoringMode == ColoringMode.PASTEL_ORIG;
+            bool isPastel = x.ColoringMode == ColoringMode.PASTEL_FULL_VIVID || x.ColoringMode == ColoringMode.PASTEL_HIGHER_SATURATION || x.ColoringMode == ColoringMode.PASTEL_ORIG;
+            m_allowRed.isVisible = isPastel;
+            m_allowGreen.isVisible = isPastel;
+            m_allowBlues.isVisible = isPastel;
+            m_allowNeutral.isVisible = isPastel;
             m_listColorContainer.isVisible = x.ColoringMode == ColoringMode.LIST;
         }
 
@@ -497,11 +526,49 @@ namespace Klyte.BuildingColorExpander.UI
                 ApplyColorUIRules(x);
             }
         });
-        private void OnChangePastelConfig(int sel) => SafeObtain((ref CityDataRuleXml x) =>
+
+        private void OnAllowRedChanged(bool isChecked) => SafeObtain((ref CityDataRuleXml x) =>
         {
-            if (sel >= 0)
+            if (isChecked)
             {
-                x.PastelConfig = (PastelConfig)sel;
+                x.PastelConfig &= ~PastelConfig.AVOID_REDS;
+            }
+            else
+            {
+                x.PastelConfig |= PastelConfig.AVOID_REDS;
+            }
+        });
+        private void OnAllowGreenChanged(bool isChecked) => SafeObtain((ref CityDataRuleXml x) =>
+        {
+            if (isChecked)
+            {
+                x.PastelConfig &= ~PastelConfig.AVOID_GREENS;
+            }
+            else
+            {
+                x.PastelConfig |= PastelConfig.AVOID_GREENS;
+            }
+        });
+        private void OnAllowBlueChanged(bool isChecked) => SafeObtain((ref CityDataRuleXml x) =>
+        {
+            if (isChecked)
+            {
+                x.PastelConfig &= ~PastelConfig.AVOID_BLUES;
+            }
+            else
+            {
+                x.PastelConfig |= PastelConfig.AVOID_BLUES;
+            }
+        });
+        private void OnAllowNeutralChanged(bool isChecked) => SafeObtain((ref CityDataRuleXml x) =>
+        {
+            if (isChecked)
+            {
+                x.PastelConfig &= ~PastelConfig.AVOID_NEUTRALS;
+            }
+            else
+            {
+                x.PastelConfig |= PastelConfig.AVOID_NEUTRALS;
             }
         });
     }

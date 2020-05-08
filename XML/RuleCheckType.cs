@@ -2,10 +2,11 @@
 {
     public enum RuleCheckType
     {
-        ITEM_CLASS,
         SERVICE,
         SERVICE_SUBSERVICE,
+        SERVICE_SUBSERVICE_LEVEL,
         SERVICE_LEVEL,
+        ITEM_CLASS,
         ASSET_NAME
     }
 }

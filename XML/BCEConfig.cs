@@ -8,6 +8,5 @@ namespace Klyte.BuildingColorExpander.XML
     {
         [XmlAttribute("rulesetName")]
         public override string SaveName { get; set; }
-        public bool Where { get; internal set; }
     }
 }
