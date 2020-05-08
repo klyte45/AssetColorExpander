@@ -1,20 +1,20 @@
 ﻿using ColossalFramework.Math;
-using Klyte.BuildingColorExpander.Data;
-using Klyte.BuildingColorExpander.XML;
+using Klyte.AssetColorExpander.Data;
+using Klyte.AssetColorExpander.XML;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Klyte.BuildingColorExpander
+namespace Klyte.AssetColorExpander
 {
-    public class BCEOverrides : Redirector, IRedirectable
+    public class ACEBuildingOverrides : Redirector, IRedirectable
     {
-        public void Awake() => AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(BCEOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+        public void Awake() => AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(ACEBuildingOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
 
-        public static Dictionary<string, AssetFolderRulesXml> AssetsRules => BuildingColorExpanderMod.Controller?.m_colorConfigData;
-        public static Dictionary<ushort, BasicColorConfigurationXml> RulesCache => BuildingColorExpanderMod.Controller?.m_cachedRules;
+        public static Dictionary<string, BuildingAssetFolderRulesXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigData;
+        public static Dictionary<ushort, BasicColorConfigurationXml> RulesCache => AssetColorExpanderMod.Controller?.m_cachedRules;
 
         public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result)
         {
@@ -30,8 +30,8 @@ namespace Klyte.BuildingColorExpander
                 BuildingInfo info = data.Info;
                 byte district = DistrictManager.instance.GetDistrict(data.m_position);
                 byte park = DistrictManager.instance.GetPark(data.m_position);
-                itemData = BCEConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
-                if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out AssetFolderRulesXml itemDataAsset))
+                itemData = ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
+                if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out BuildingAssetFolderRulesXml itemDataAsset))
                 {
                     itemData = itemDataAsset;
                 }

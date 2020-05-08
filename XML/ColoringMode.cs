@@ -1,4 +1,4 @@
-﻿namespace Klyte.BuildingColorExpander.XML
+﻿namespace Klyte.AssetColorExpander.XML
 {
     public enum ColoringMode
     {

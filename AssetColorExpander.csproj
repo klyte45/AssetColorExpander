@@ -8,7 +8,7 @@
     <ProjectGuid>{19B7EAF1-8938-432C-8D6A-7975D27755F1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Klyte</RootNamespace>
-    <AssemblyName>BuildingColorExpander</AssemblyName>
+    <AssemblyName>AssetColorExpander</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <LangVersion>8.0</LangVersion>
@@ -60,17 +60,17 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Compile Include="BCEController.cs" />
+    <Compile Include="ACEController.cs" />
     <Compile Include="commons\Utils\PrefabUtils.cs" />
     <Compile Include="commons\Utils\UITemplateUtils.cs" />
-    <Compile Include="Overrides\BCEOverrides.cs" />
+    <Compile Include="Overrides\ACEBuildingOverrides.cs" />
     <Compile Include="commons\Interfaces\ILibableAsContainer.cs" />
-    <Compile Include="Data\BCEConfigRulesData.cs" />
-    <Compile Include="Libraries\BCEConfigLib.cs" />
-    <Compile Include="Libraries\BCERulesetConfigLib.cs" />
-    <Compile Include="UI\BCEPanel.cs" />
+    <Compile Include="Data\ACEBuildingConfigRulesData.cs" />
+    <Compile Include="Libraries\ACEBuildingRuleLib.cs" />
+    <Compile Include="Libraries\ACEBuildingRulesetLib.cs" />
+    <Compile Include="UI\ACEPanel.cs" />
     <Compile Include="CommonProperties.cs" />
-    <Compile Include="BuildingColorExpanderMod.cs" />
+    <Compile Include="AssetColorExpanderMod.cs" />
     <Compile Include="commons\Extensors\Redirector.cs" />
     <Compile Include="commons\Extensors\UI\CheckboxOrdernatedList.cs" />
     <Compile Include="commons\Extensors\UI\NumberedColorList.cs" />
@@ -165,14 +165,15 @@
     <Compile Include="commons\Utils\VehicleUtils.cs" />
     <Compile Include="commons\Utils\XmlUtils.cs" />
     <Compile Include="commons\Utils\ZipUtils.cs" />
-    <Compile Include="UI\BCERulesList.cs" />
-    <Compile Include="UI\BCERuleEditor.cs" />
+    <Compile Include="UI\ACEBuildingRulesList.cs" />
+    <Compile Include="UI\ACEBuildingRuleEditor.cs" />
     <Compile Include="commons\UI\BasicRulesList.cs" />
     <Compile Include="commons\UI\DefaultEditorUILib.cs" />
-    <Compile Include="XML\AssetFolderRulesXml.cs" />
-    <Compile Include="XML\BCEConfig.cs" />
-    <Compile Include="XML\CityDataRulesXml.cs" />
-    <Compile Include="XML\ColorConfigurationXml.cs" />
+    <Compile Include="XML\BuildingAssetFolderRulesXml.cs" />
+    <Compile Include="XML\ACEBuildingConfig.cs" />
+    <Compile Include="XML\BuildingCityDataRuleXml.cs" />
+    <Compile Include="XML\DistrictRestrictionOrder.cs" />
+    <Compile Include="XML\BasicColorConfigurationXml.cs" />
     <Compile Include="XML\ColoringMode.cs" />
     <Compile Include="XML\RuleCheckType.cs" />
   </ItemGroup>
@@ -187,7 +188,6 @@
     <EmbeddedResource Include="UI\i18n\pt.properties" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Images\%25K45_BCE_Icon.png" />
     <EmbeddedResource Include="UI\VersionNotes.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -300,17 +300,18 @@
     <Content Include="commons\UI\Images\lineFormat.psd" />
     <Content Include="commons\UI\Images\lineFormats.psd" />
     <Content Include="commons\UI\Images\sprites.psd" />
+    <EmbeddedResource Include="UI\Images\%25K45_ACE_Icon.png" />
     <Content Include="UI\Images\icon.psd" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y "$(TargetPath)" "$(ProjectDir)\_requiredDLLs"
 xcopy /Y "$(TargetDir)0Harmony.dll" "$(ProjectDir)\_requiredDLLs\"
-xcopy /Y /e "$(ProjectDir)\_requiredDLLs\*" "S:\Steam\steamapps\workshop\content\255710\1808439336\*"
-xcopy /Y /e "$(ProjectDir)\_requiredDLLs\*" "C:\Users\Leandro\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\BCE\"</PostBuildEvent>
+rem xcopy /Y /e "$(ProjectDir)\_requiredDLLs\*" "S:\Steam\steamapps\workshop\content\255710\1808439336\*"
+xcopy /Y /e "$(ProjectDir)\_requiredDLLs\*" "C:\Users\Leandro\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\ACE\"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>del /q "S:\Steam\steamapps\workshop\content\255710\1808439336\*"
+    <PreBuildEvent>rem del /q "S:\Steam\steamapps\workshop\content\255710\1808439336\*"
 del /q "$(ProjectDir)\_requiredDLLs\*"
-del /q "C:\Users\Leandro\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\BCE\"</PreBuildEvent>
+del /q "C:\Users\Leandro\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\ACE\"</PreBuildEvent>
   </PropertyGroup>
 </Project>

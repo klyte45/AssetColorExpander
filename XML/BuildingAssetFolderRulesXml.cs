@@ -1,8 +1,8 @@
 ﻿using System.Xml.Serialization;
 
-namespace Klyte.BuildingColorExpander.XML
+namespace Klyte.AssetColorExpander.XML
 {
-    public class AssetFolderRulesXml : BasicColorConfigurationXml
+    public class BuildingAssetFolderRulesXml : BasicColorConfigurationXml
     {
         [XmlAttribute(AttributeName = "assetName")]
         public string AssetName { get; set; }

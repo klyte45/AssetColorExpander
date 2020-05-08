@@ -5,10 +5,10 @@ using System.Linq;
 using System.Xml.Serialization;
 using UnityEngine;
 
-namespace Klyte.BuildingColorExpander.XML
+namespace Klyte.AssetColorExpander.XML
 {
 
-    [XmlRoot(ElementName = "bce")]
+    [XmlRoot(ElementName = "clrcnf")]
     public abstract class BasicColorConfigurationXml : ILibable
     {
         [XmlElement(ElementName = "color")]

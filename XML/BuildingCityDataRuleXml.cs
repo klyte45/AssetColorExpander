@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace Klyte.BuildingColorExpander.XML
+namespace Klyte.AssetColorExpander.XML
 {
-    public class CityDataRuleXml : BasicColorConfigurationXml
+    public class BuildingCityDataRuleXml : BasicColorConfigurationXml
     {
         [XmlAttribute]
         public string ItemClassName { get; set; }
@@ -66,11 +66,6 @@ namespace Klyte.BuildingColorExpander.XML
         }
         public bool AllowsDistrict(byte districtId) => SelectedDistricts.Contains(districtId) != SelectedDistrictsIsBlacklist;
         public bool AllowsPark(byte districtId) => SelectedDistricts.Contains((ushort)(0x100 | districtId)) != SelectedDistrictsIsBlacklist;
-    }
-    public enum DistrictRestrictionOrder
-    {
-        ParksOrDistricts,
-        ParksAndDistricts
     }
 
 }
