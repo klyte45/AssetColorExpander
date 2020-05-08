@@ -8,7 +8,7 @@ namespace Klyte.BuildingColorExpander.Data
     public class BCEConfigRulesData : DataExtensorBase<BCEConfigRulesData>
     {
         [XmlElement("rules")]
-        public BCEConfig<CityDataRulesXml> Rules { get; private set; } = new BCEConfig<CityDataRulesXml>();
+        public BCEConfig<CityDataRuleXml> Rules { get; private set; } = new BCEConfig<CityDataRuleXml>();
         public override string SaveId => "K45_BCE_BCEConfigRulesData";
 
     }

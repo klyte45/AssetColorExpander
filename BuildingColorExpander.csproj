@@ -60,6 +60,9 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <Compile Include="BCEController.cs" />
+    <Compile Include="commons\Utils\PrefabUtils.cs" />
+    <Compile Include="commons\Utils\UITemplateUtils.cs" />
     <Compile Include="Overrides\BCEOverrides.cs" />
     <Compile Include="commons\Interfaces\ILibableAsContainer.cs" />
     <Compile Include="Data\BCEConfigRulesData.cs" />
@@ -162,7 +165,8 @@
     <Compile Include="commons\Utils\VehicleUtils.cs" />
     <Compile Include="commons\Utils\XmlUtils.cs" />
     <Compile Include="commons\Utils\ZipUtils.cs" />
-    <Compile Include="UI\Editor\WTSRoadCornerEditorDetailTabs.cs" />
+    <Compile Include="UI\BCERulesList.cs" />
+    <Compile Include="UI\BCERuleEditor.cs" />
     <Compile Include="commons\UI\BasicRulesList.cs" />
     <Compile Include="commons\UI\DefaultEditorUILib.cs" />
     <Compile Include="XML\AssetFolderRulesXml.cs" />

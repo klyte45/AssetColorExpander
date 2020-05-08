@@ -14,7 +14,7 @@ namespace Klyte.BuildingColorExpander
         public void Awake() => AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(BCEOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
 
         public static Dictionary<string, AssetFolderRulesXml> AssetsRules => BuildingColorExpanderMod.Controller?.m_colorConfigData;
-        public static Dictionary<string, BasicColorConfigurationXml> RulesCache => BuildingColorExpanderMod.Controller?.m_cachedRules;
+        public static Dictionary<ushort, BasicColorConfigurationXml> RulesCache => BuildingColorExpanderMod.Controller?.m_cachedRules;
 
         public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result)
         {
@@ -25,16 +25,17 @@ namespace Klyte.BuildingColorExpander
                 return true;
             }
             string dataName = data.Info?.name;
-            BasicColorConfigurationXml itemData = null;
-            if (dataName != null && !RulesCache.TryGetValue(dataName, out itemData))
+            if (!RulesCache.TryGetValue(buildingID, out BasicColorConfigurationXml itemData))
             {
                 BuildingInfo info = data.Info;
-                itemData = BCEConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info)).OrderBy(x => x.First).FirstOrDefault()?.Second;
+                byte district = DistrictManager.instance.GetDistrict(data.m_position);
+                byte park = DistrictManager.instance.GetPark(data.m_position);
+                itemData = BCEConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
                 if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out AssetFolderRulesXml itemDataAsset))
                 {
                     itemData = itemDataAsset;
                 }
-                RulesCache[dataName] = itemData;
+                RulesCache[buildingID] = itemData;
             }
             if (itemData == null)
             {
