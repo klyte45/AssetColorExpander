@@ -1,7 +1,9 @@
-﻿using Klyte.BuildingColorExpander.Data;
+﻿using ColossalFramework.Globalization;
+using Klyte.BuildingColorExpander.Data;
 using Klyte.BuildingColorExpander.Libraries;
 using Klyte.BuildingColorExpander.XML;
 using Klyte.Commons.UI;
+using Klyte.Commons.Utils;
 
 namespace Klyte.BuildingColorExpander.UI
 {
@@ -15,7 +17,7 @@ namespace Klyte.BuildingColorExpander.UI
 
         protected override string LocaleExport => "K45_BCE_BUILDINGRULES_EXPORTRULELIST";
 
-        protected override void Help_RulesList() { }
+        protected override void Help_RulesList() => K45DialogControl.ShowModalHelp("General.RuleList", Locale.Get("K45_BCE_BUILDINGRULES_RULELISTTITLE"),0, BCERulesetConfigLib.Instance.DefaultXmlFileBaseFullPath);
         protected override void OnTabstripFix() => BuildingColorExpanderMod.Controller?.CleanCache();
     }
 }

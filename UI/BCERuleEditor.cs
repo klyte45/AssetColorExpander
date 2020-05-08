@@ -86,6 +86,7 @@ namespace Klyte.BuildingColorExpander.UI
             helperSettings.AddSpace(5);
 
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckType)).Select(x => Locale.Get("K45_BCE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
+            AddButtonInEditorRow(m_ruleFilter, CommonsSpriteNames.K45_QuestionMark, Help_RuleFilter);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_SERVICEFILTER"), out m_service, helperSettings, (Enum.GetValues(typeof(ItemClass.Service)) as ItemClass.Service[]).OrderBy(x => (int)x).Select(x => x == 0 ? Locale.Get("K45_BCE_ANYSERVICE_OPTION") : $"{x}").ToArray(), OnChangeServiceFilter);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_SUBSERVICEFILTER"), out m_subService, helperSettings, Enum.GetNames(typeof(ItemClass.SubService)).Select(x => $"{x}").ToArray(), OnChangeSubServiceFilter);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_LEVELFILTER"), out m_level, helperSettings, (Enum.GetValues(typeof(ItemClass.Level)) as ItemClass.Level[]).OrderBy(x => (int)x).Select(x => $"{x}").ToArray(), OnChangeLevelFilter);
@@ -100,6 +101,8 @@ namespace Klyte.BuildingColorExpander.UI
             AddLibBox<BCEConfigLib, CityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_COLORMODE"), out m_colorMode, helperAppearence, Enum.GetNames(typeof(ColoringMode)).Select(x => Locale.Get("K45_BCE_COLORINGMODE", x)).ToArray(), OnChangeColoringMode);
+            AddButtonInEditorRow(m_colorMode, CommonsSpriteNames.K45_QuestionMark, Help_ColorMode);
+
             AddCheckboxLocale("K45_BCE_BUILDINGRULES_ALLOWREDTONES", out m_allowRed, helperAppearence, OnAllowRedChanged);
             AddCheckboxLocale("K45_BCE_BUILDINGRULES_ALLOWGREENTONES", out m_allowGreen, helperAppearence, OnAllowGreenChanged);
             AddCheckboxLocale("K45_BCE_BUILDINGRULES_ALLOWBLUETONES", out m_allowBlues, helperAppearence, OnAllowBlueChanged);
@@ -121,6 +124,7 @@ namespace Klyte.BuildingColorExpander.UI
             AddCheckboxLocale("K45_BCE_BUILDINGRULES_DISTRICTSELECTIONASWHITELIST", out m_districtWhiteList, helperDistricts, OnSetDistrictsAsWhitelist);
             AddCheckboxLocale("K45_BCE_BUILDINGRULES_DISTRICTSELECTIONASBLACKLIST", out m_districtBlackList, helperDistricts, OnSetDistrictsAsBlacklist);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_DISTRICTRESTRICTIONSOLVEORDER"), out m_districtResolutionOrder, helperDistricts, Enum.GetNames(typeof(DistrictRestrictionOrder)).Select(x => Locale.Get("K45_BCE_DISTRICTRESTRICTIONORDER", x)).ToArray(), OnChangeDistrictRestrictionOrder);
+            AddButtonInEditorRow(m_districtResolutionOrder, CommonsSpriteNames.K45_QuestionMark, Help_DistrictFilter);
             KlyteMonoUtils.CreateUIElement(out m_listContainer, helperDistricts.Self.transform, "previewPanel", new UnityEngine.Vector4(0, 0, helperDistricts.Self.width, helperDistricts.Self.height - 160));
             KlyteMonoUtils.CreateScrollPanel(m_listContainer, out m_districtList, out _, m_listContainer.width - 20, m_listContainer.height);
             m_districtList.backgroundSprite = "OptionsScrollbarTrack";
@@ -136,6 +140,9 @@ namespace Klyte.BuildingColorExpander.UI
             m_pasteSettings.isVisible = false;
         }
 
+        private void Help_DistrictFilter() => K45DialogControl.ShowModalHelp("General.DistrictFilter", Locale.Get("K45_BCE_BUILDINGRULES_DISTRICTFILTER"), 0);
+        private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Building.ColoringMode", Locale.Get("K45_BCE_BUILDINGRULES_COLORMODE"), 0);
+        private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Building.TypeOfRule", Locale.Get("K45_BCE_BUILDINGRULES_RULEFILTER"), 0);
         private void AddColor() => SafeObtain((ref CityDataRuleXml x) =>
         {
             x.m_colorList.Add(Color.white);

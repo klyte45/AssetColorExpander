@@ -1,0 +1,9 @@
+The district filter rule is used to tell if the color rule will be applied in a instance. You can make a selection and make it work as a:
+	- <color #FFFF00>Whitelist</color> - Then only the <color #88ff88>SELECTED</color> districts will allow this rule
+	- <color #FFFF00>Blacklist</color> - Then only the <color #ff8888>NOT SELECTED</color> districts will allow this rule
+	
+You can select also parks, industrial areas, campus and other kind of marked areas. If two of them overlaps, you can use the <color #FFFF00>District and park overlap requirement</color> to set how the conflict will be solved:
+	- <color #FFFF00>At least one should allow</color> - Then if one of them allow it (is on Whitelist/isn't on Blacklist), the rule will be applied
+	- <color #FFFF00>Both should allow</color> - Only if both are allowed in this rule (is on Whitelist/isn't on Blacklist), the rule will be applied
+	
+In this example, any district will allow the rule, once it's working as a Blacklist and none was selected.

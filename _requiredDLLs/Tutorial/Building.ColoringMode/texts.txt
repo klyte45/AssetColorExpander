@@ -1,0 +1,17 @@
+There are 4 different methods to set the coloring mode for buildings:
+	
+	-<color #FFFF00>Pastel (Original)</color> - Use generated pastel colors.
+	-<color #FFFF00>Pastel - Higher Saturation</color> - Use generated pastel colors, but with colors slightly saturated.
+	-<color #FFFF00>Pastel - Vivid</color> - Use generated pastel colors, but with colors strongly saturated.
+	-<color #FFFF00>Color list</color> - Create a palette of colors to use in this rule.
+	
+<BR>Pastel colors have an additional configuration that allow to change a little the behavior of the generator. You can combine which kind of color will be generated (Red, Green, Blue and/or Neutral tones - mixable between them).
+Look some examples in next steps. This image show the Pastel Vivid config allowing any kind of tones.
+<BR>This is the same than the previous, but no Red tones.
+<BR>This is the same than the first, but no Green tones.
+<BR>This is the same than the first, but no Blue tones.
+<BR>This is the same than the first, but no Neutral tones. Neutral tones are that one that don't have a stronger R, G or B component in their color.
+<BR>You can add how many colors you want in the palette for color list. A trick is to repeat the colors you want that appear more likely.
+
+<color #FF0000>TO ADVANCED USERS:</color> If the UI get too hard to use, try exporting the rule into the Rule Lib (see the <sprite K45_Load> tab), editing the file and then reimporting it again.
+The lib format is a XML file, that shall be easily readable.
