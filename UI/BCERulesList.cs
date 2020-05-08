@@ -9,11 +9,11 @@ namespace Klyte.BuildingColorExpander.UI
     {
         protected override ref CityDataRuleXml[] ReferenceData => ref BCEConfigRulesData.Instance.Rules.m_dataArray;
 
-        protected override string LocaleRuleListTitle => "K45_BCE_RULELISTTITLE";
+        protected override string LocaleRuleListTitle => "K45_BCE_BUILDINGRULES_RULELISTTITLE";
 
-        protected override string LocaleImport => "K45_BCE_IMPORTRULELIST";
+        protected override string LocaleImport => "K45_BCE_BUILDINGRULES_IMPORTRULELIST";
 
-        protected override string LocaleExport => "K45_BCE_EXPORTRULELIST";
+        protected override string LocaleExport => "K45_BCE_BUILDINGRULES_EXPORTRULELIST";
 
         protected override void Help_RulesList() { }
         protected override void OnTabstripFix() => BuildingColorExpanderMod.Controller?.CleanCache();

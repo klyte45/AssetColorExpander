@@ -25,7 +25,7 @@ namespace Klyte.BuildingColorExpander.XML
         [XmlAttribute("ruleName")]
         public string SaveName { get; set; }
         [XmlIgnore]
-        internal List<Color32> m_colorList;
+        internal List<Color32> m_colorList = new List<Color32>();
 
     }
 }

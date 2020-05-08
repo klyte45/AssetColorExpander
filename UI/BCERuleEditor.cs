@@ -24,6 +24,7 @@ namespace Klyte.BuildingColorExpander.UI
         private Dictionary<string, string> m_buildingsLoaded;
 
         private const string DISTRICT_SELECTOR_TEMPLATE = "K45_BCE_DistrictSelectorTemplate";
+        private const string COLOR_SELECTOR_TEMPLATE = "K45_BCE_ColorListSelectorTemplate";
         private int m_currentIdx = -1;
 
         private UITabstrip m_tabstrip;
@@ -41,12 +42,20 @@ namespace Klyte.BuildingColorExpander.UI
         private UITextField m_assetFilter;
         private UIListBox m_popup;
 
+
+        private UIDropDown m_pastelConfig;
+        private UIDropDown m_colorMode;
+        private UIPanel m_listColorContainer;
+        private UIScrollablePanel m_colorListScroll;
+        private UITemplateList<UIPanel> m_colorFieldTemplateListColors;
+        private UIButton m_addColor;
+
         private UICheckBox m_districtWhiteList;
         private UICheckBox m_districtBlackList;
         private UIDropDown m_districtResolutionOrder;
         private UIPanel m_listContainer;
         private UIScrollablePanel m_districtList;
-        private UITemplateList<UIPanel> m_checkboxTemplateList;
+        private UITemplateList<UIPanel> m_checkboxTemplateListDistrict;
 
 
 
@@ -85,6 +94,20 @@ namespace Klyte.BuildingColorExpander.UI
 
             AddLibBox<BCEConfigLib, CityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
+            AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_COLORMODE"), out m_colorMode, helperAppearence, Enum.GetNames(typeof(ColoringMode)).Select(x => Locale.Get("K45_BCE_COLORINGMODE", x)).ToArray(), OnChangeColoringMode);
+            AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_PASTELGENTYPE"), out m_pastelConfig, helperAppearence, Enum.GetNames(typeof(PastelConfig)).Select(x => Locale.Get("K45_BCE_PASTELCONFIG", x)).ToArray(), OnChangePastelConfig);
+            KlyteMonoUtils.CreateUIElement(out m_listColorContainer, helperAppearence.Self.transform, "listColors", new UnityEngine.Vector4(0, 0, helperAppearence.Self.width, helperAppearence.Self.height - 80));
+            KlyteMonoUtils.CreateScrollPanel(m_listColorContainer, out m_colorListScroll, out _, m_listColorContainer.width - 20, m_listColorContainer.height);
+            m_colorListScroll.backgroundSprite = "OptionsScrollbarTrack";
+            m_colorListScroll.autoLayout = true;
+            m_colorListScroll.autoLayoutDirection = LayoutDirection.Horizontal;
+            m_colorListScroll.wrapLayout = true;
+            CreateTemplateColorItem();
+            m_colorFieldTemplateListColors = new UITemplateList<UIPanel>(m_colorListScroll, COLOR_SELECTOR_TEMPLATE);
+
+            KlyteMonoUtils.InitCircledButton(m_colorListScroll, out m_addColor, CommonsSpriteNames.K45_Plus, (x, y) => AddColor(), "", 36);
+
+
             AddCheckboxLocale("K45_BCE_BUILDINGRULES_DISTRICTSELECTIONASWHITELIST", out m_districtWhiteList, helperDistricts, OnSetDistrictsAsWhitelist);
             AddCheckboxLocale("K45_BCE_BUILDINGRULES_DISTRICTSELECTIONASBLACKLIST", out m_districtBlackList, helperDistricts, OnSetDistrictsAsBlacklist);
             AddDropdown(Locale.Get("K45_BCE_BUILDINGRULES_DISTRICTRESTRICTIONSOLVEORDER"), out m_districtResolutionOrder, helperDistricts, Enum.GetNames(typeof(DistrictRestrictionOrder)).Select(x => Locale.Get("K45_BCE_DISTRICTRESTRICTIONORDER", x)).ToArray(), OnChangeDistrictRestrictionOrder);
@@ -95,7 +118,7 @@ namespace Klyte.BuildingColorExpander.UI
             m_districtList.autoLayoutDirection = LayoutDirection.Vertical;
 
             CreateTemplateDistrict();
-            m_checkboxTemplateList = new UITemplateList<UIPanel>(m_districtList, DISTRICT_SELECTOR_TEMPLATE);
+            m_checkboxTemplateListDistrict = new UITemplateList<UIPanel>(m_districtList, DISTRICT_SELECTOR_TEMPLATE);
 
 
             BCEPanel.Instance.RuleList.EventSelectionChanged += OnChangeTab;
@@ -103,6 +126,11 @@ namespace Klyte.BuildingColorExpander.UI
             m_pasteSettings.isVisible = false;
         }
 
+        private void AddColor() => SafeObtain((ref CityDataRuleXml x) =>
+        {
+            x.m_colorList.Add(Color.white);
+            UpdateColorList(ref x);
+        });
         public void Start() => m_class.items = BuildingColorExpanderMod.Controller?.AllClassesBuilding?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
 
         #region Prefab handling
@@ -153,7 +181,7 @@ namespace Klyte.BuildingColorExpander.UI
         {
             var districts = DistrictUtils.GetValidParks().ToDictionary(x => x.Key, x => 0x100 | x.Value).Union(DistrictUtils.GetValidDistricts()).OrderBy(x => x.Value == 0 ? "" : x.Key).ToDictionary(x => x.Key, x => x.Value);
             ref DistrictPark[] parkBuffer = ref Singleton<DistrictManager>.instance.m_parks.m_buffer;
-            UIPanel[] districtChecks = m_checkboxTemplateList.SetItemCount(districts.Count);
+            UIPanel[] districtChecks = m_checkboxTemplateListDistrict.SetItemCount(districts.Count);
 
             for (int i = 0; i < districts.Count; i++)
             {
@@ -217,9 +245,9 @@ namespace Klyte.BuildingColorExpander.UI
                 }
 
             }
-            for (int i = 0; i < m_checkboxTemplateList.items.Count; i++)
+            for (int i = 0; i < m_checkboxTemplateListDistrict.items.Count; i++)
             {
-                UICheckBox checkbox = m_checkboxTemplateList.items[i].GetComponentInChildren<UICheckBox>();
+                UICheckBox checkbox = m_checkboxTemplateListDistrict.items[i].GetComponentInChildren<UICheckBox>();
                 if (ushort.TryParse(checkbox.stringUserData, out ushort districtIdx))
                 {
                     checkbox.isChecked = reference.SelectedDistricts.Contains(districtIdx);
@@ -246,6 +274,54 @@ namespace Klyte.BuildingColorExpander.UI
                 uiCheckbox.label.textScale = 0.8f;
 
                 UITemplateUtils.GetTemplateDict()[DISTRICT_SELECTOR_TEMPLATE] = panel;
+            }
+        }
+        #endregion
+
+        #region ColorList
+
+        private bool m_isLoadingColors = false;
+        private void UpdateColorList(ref CityDataRuleXml reference)
+        {
+            UIPanel[] colorPickers = m_colorFieldTemplateListColors.SetItemCount(reference.m_colorList.Count);
+            m_isLoadingColors = true;
+            for (int i = 0; i < reference.m_colorList.Count; i++)
+            {
+                UIColorField colorField = colorPickers[i].GetComponentInChildren<UIColorField>();
+                if (colorField.objectUserData == null)
+                {
+                    colorField.eventSelectedColorChanged += (x, y) =>
+                        SafeObtain((ref CityDataRuleXml z) =>
+                            {
+                                if (!m_isLoadingColors && z.m_colorList.Count > x.parent.zOrder)
+                                {
+                                    z.m_colorList[x.parent.zOrder] = y;
+                                }
+                            });
+                    colorField.eventColorPickerOpen += KlyteMonoUtils.DefaultColorPickerHandler;
+                    colorField.objectUserData = true;
+                }
+                colorField.selectedColor = reference.m_colorList[i];
+            }
+            m_addColor.zOrder = 99999999;
+            m_isLoadingColors = false;
+        }
+
+        private void CreateTemplateColorItem()
+        {
+            if (!UITemplateUtils.GetTemplateDict().ContainsKey(COLOR_SELECTOR_TEMPLATE))
+            {
+                var go = new GameObject();
+                UIPanel panel = go.AddComponent<UIPanel>();
+                panel.size = new Vector2(36, 36);
+                panel.autoLayout = true;
+                panel.wrapLayout = false;
+                panel.padding = new RectOffset(4, 4, 4, 4);
+                panel.autoLayoutDirection = LayoutDirection.Horizontal;
+
+                KlyteMonoUtils.CreateColorField(panel);
+
+                UITemplateUtils.GetTemplateDict()[COLOR_SELECTOR_TEMPLATE] = panel;
             }
         }
         #endregion
@@ -295,8 +371,20 @@ namespace Klyte.BuildingColorExpander.UI
 
                 ApplyRuleCheck(x);
 
+                m_colorMode.selectedIndex = (int)x.ColoringMode;
+                m_pastelConfig.selectedIndex = (int)x.PastelConfig;
+                UpdateColorList(ref x);
+
+                ApplyColorUIRules(x);
+
                 UpdateDistrictList(ref x);
             });
+        }
+
+        private void ApplyColorUIRules(CityDataRuleXml x)
+        {
+            m_pastelConfig.parent.isVisible = x.ColoringMode == ColoringMode.PASTEL_FULL_VIVID || x.ColoringMode == ColoringMode.PASTEL_HIGHER_SATURATION || x.ColoringMode == ColoringMode.PASTEL_ORIG;
+            m_listColorContainer.isVisible = x.ColoringMode == ColoringMode.LIST;
         }
 
         private void ApplyRuleCheck(CityDataRuleXml x)
@@ -399,6 +487,21 @@ namespace Klyte.BuildingColorExpander.UI
             if (sel >= 0)
             {
                 x.Service = (ItemClass.Service)sel;
+            }
+        });
+        private void OnChangeColoringMode(int sel) => SafeObtain((ref CityDataRuleXml x) =>
+        {
+            if (sel >= 0)
+            {
+                x.ColoringMode = (ColoringMode)sel;
+                ApplyColorUIRules(x);
+            }
+        });
+        private void OnChangePastelConfig(int sel) => SafeObtain((ref CityDataRuleXml x) =>
+        {
+            if (sel >= 0)
+            {
+                x.PastelConfig = (PastelConfig)sel;
             }
         });
     }
