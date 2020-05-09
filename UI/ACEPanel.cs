@@ -15,6 +15,7 @@ namespace Klyte.AssetColorExpander.UI
 
         public ACEBuildingController BuildingTab { get; private set; }
         public ACEVehicleController VehicleTab { get; private set; }
+        public ACECitizenController CitizenTab { get; private set; }
 
         protected override void AwakeActions()
         {
@@ -27,6 +28,7 @@ namespace Klyte.AssetColorExpander.UI
 
             BuildingTab = m_stripMain.CreateTabLocalized<ACEBuildingController>("IconAssetBuilding", "K45_ACE_BUILDINGSRULEEDITOR_TAB", "ACEBuildingEditorTab", false);
             VehicleTab = m_stripMain.CreateTabLocalized<ACEVehicleController>("IconAssetVehicle", "K45_ACE_VEHICLESRULEEDITOR_TAB", "ACEVehicleEditorTab", false);
+            CitizenTab = m_stripMain.CreateTabLocalized<ACECitizenController>("IconAssetCitizen", "K45_ACE_CITIZENRULEEDITOR_TAB", "ACECitiezenEditorTab", false);
         }
     }
 }

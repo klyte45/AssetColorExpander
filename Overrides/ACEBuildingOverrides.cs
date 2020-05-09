@@ -39,9 +39,9 @@ namespace Klyte.AssetColorExpander
                 }
                 RulesUpdated[buildingID] = true;
             }
-            if (itemData == null)
+            if (itemData == null || itemData.ColoringMode == ColoringMode.SKIP)
             {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} - not found");
+                LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} - {itemData?.ColoringMode} not found");
                 return true;
             }
             LogUtils.DoLog($"GETTING COLOR FOR BUILDING: {buildingID}");

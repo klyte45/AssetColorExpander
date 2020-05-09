@@ -4,6 +4,7 @@ using Klyte.AssetColorExpander.XML;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Interfaces;
 using Klyte.Commons.Utils;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -27,15 +28,19 @@ namespace Klyte.AssetColorExpander
             new BasicVehicleColorConfigurationXml[VehicleManager.MAX_VEHICLE_COUNT],
             new BasicVehicleColorConfigurationXml[VehicleManager.MAX_PARKED_COUNT]
         };
+        public BasicColorConfigurationXml[] CachedRulesCitizen { get; private set; } = new BasicColorConfigurationXml[CitizenManager.MAX_INSTANCE_COUNT];
 
         public bool[] UpdatedRulesBuilding { get; private set; } = new bool[BuildingManager.MAX_BUILDING_COUNT];
         public bool[][] UpdatedRulesVehicle { get; private set; } = new bool[][] {
             new bool[VehicleManager.MAX_VEHICLE_COUNT],
             new bool[VehicleManager.MAX_PARKED_COUNT]
         };
+        public bool[] UpdatedRulesCitizen { get; private set; } = new bool[CitizenManager.MAX_INSTANCE_COUNT];
 
         public Dictionary<ItemClass, List<BuildingInfo>> AllClassesBuilding { get; private set; }
         public Dictionary<ItemClass, List<VehicleInfo>> AllClassesVehicle { get; private set; }
+        public Dictionary<ItemClass, List<CitizenInfo>> AllClassesCitizen { get; private set; }
+        public Dictionary<Type, List<CitizenInfo>> AllAICitizen { get; private set; }
 
         protected override void StartActions() => ReloadFiles();
 
@@ -54,6 +59,22 @@ namespace Klyte.AssetColorExpander
               .Where(x => x?.m_class != null)
               .GroupBy(x => x.m_class.name)
               .ToDictionary(x => x.First().m_class, x => x.ToList());
+
+            AllClassesCitizen = ((FastList<PrefabCollection<CitizenInfo>.PrefabData>)typeof(PrefabCollection<CitizenInfo>).GetField("m_scenePrefabs", RedirectorUtils.allFlags).GetValue(null))
+              .m_buffer
+              .Select(x => x.m_prefab)
+              .Where(x => x?.m_class != null)
+              .GroupBy(x => x.m_class.name)
+              .ToDictionary(x => x.First().m_class, x => x.ToList());
+
+            AllAICitizen = ((FastList<PrefabCollection<CitizenInfo>.PrefabData>)typeof(PrefabCollection<CitizenInfo>).GetField("m_scenePrefabs", RedirectorUtils.allFlags).GetValue(null))
+              .m_buffer
+              .Select(x => x.m_prefab)
+              .Where(x => x?.m_class != null)
+              .GroupBy(x => x.m_citizenAI.GetType())
+              .ToDictionary(x => x.First().m_citizenAI.GetType(), x => x.ToList());
+            AllAICitizen[typeof(HumanAI)] = null;
+            AllAICitizen[typeof(AnimalAI)] = null;
         }
 
         private void ReloadFiles()
@@ -108,6 +129,7 @@ namespace Klyte.AssetColorExpander
         {
             CleanCacheVehicle();
             CleanCacheBuilding();
+            CleanCacheCitizen();
         }
         public void CleanCacheVehicle()
         {
@@ -119,6 +141,7 @@ namespace Klyte.AssetColorExpander
         }
 
         public void CleanCacheBuilding() => UpdatedRulesBuilding = new bool[BuildingManager.MAX_BUILDING_COUNT];
+        public void CleanCacheCitizen() => UpdatedRulesCitizen = new bool[CitizenManager.MAX_INSTANCE_COUNT];
 
         public void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders<BuildingInfo>($"{DEFAULT_XML_NAME_BUILDING}.xml", LoadDescriptorsFromXml);
 
@@ -140,7 +163,7 @@ namespace Klyte.AssetColorExpander
 
         #region Prefab loading
 
-        private Dictionary<string, string> m_vehiclesLoaded, m_buildingsLoaded;
+        private Dictionary<string, string> m_vehiclesLoaded, m_buildingsLoaded, m_citizensLoaded;
 
         public Dictionary<string, string> VehiclesLoaded
         {
@@ -161,6 +184,17 @@ namespace Klyte.AssetColorExpander
                     m_buildingsLoaded = GetInfos<BuildingInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
                 }
                 return m_buildingsLoaded;
+            }
+        }
+
+        public Dictionary<string, string> CitizensLoaded
+        {
+            get {
+                if (m_citizensLoaded == null)
+                {
+                    m_citizensLoaded = GetInfos<CitizenInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
+                }
+                return m_citizensLoaded;
             }
         }
 
@@ -190,6 +224,12 @@ namespace Klyte.AssetColorExpander
             .ToArray();
 
         public string[] FilterBuildingByText(string text) => BuildingsLoaded
+            .ToList()
+            .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
+            .Select(x => x.Key)
+            .OrderBy((x) => x)
+            .ToArray();
+        public string[] FilterCitizensByText(string text) => CitizensLoaded
             .ToList()
             .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
             .Select(x => x.Key)

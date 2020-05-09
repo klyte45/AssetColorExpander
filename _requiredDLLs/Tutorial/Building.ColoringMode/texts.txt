@@ -1,5 +1,6 @@
-There are 4 different methods to set the coloring mode for buildings:
+There are 5 different methods to set the coloring mode for buildings:
 	
+	-<color #FFFF00>Skip</color> - Use the game behavior.
 	-<color #FFFF00>Pastel (Original)</color> - Use generated pastel colors.
 	-<color #FFFF00>Pastel - Higher Saturation</color> - Use generated pastel colors, but with colors slightly saturated.
 	-<color #FFFF00>Pastel - Vivid</color> - Use generated pastel colors, but with colors strongly saturated.

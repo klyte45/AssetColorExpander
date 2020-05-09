@@ -40,7 +40,7 @@ namespace Klyte.AssetColorExpander
 
             if (infoMode != InfoManager.InfoMode.None)
             {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {vehicleId} INFO = {infoMode}");
+                LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {vehicleId}/{parked} INFO = {infoMode}");
                 return true;
             }
             string dataName = info?.name;
@@ -55,9 +55,9 @@ namespace Klyte.AssetColorExpander
                 }
                 RulesUpdated[idx][vehicleId] = true;
             }
-            if (itemData == null)
+            if (itemData == null || itemData.ColoringMode == ColoringMode.SKIP)
             {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {vehicleId} - not found");
+                LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {vehicleId} - {itemData?.ColoringMode} / not found");
                 return true;
             }
             if (!parked && leadingVehicle != 0 && !itemData.AllowDifferentColorsOnWagons)
