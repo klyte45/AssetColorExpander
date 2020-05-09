@@ -89,7 +89,7 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_VEHICLERULES_ASSETSELECTOWNER"), out m_assetFilterOwner, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterOwner);
-            m_popupOwner = ConfigureListSelectionPopupForUITextField(m_assetFilterOwner, () => AssetColorExpanderMod.Controller?.FilterBuildingByText(m_assetFilterOwner.text), OnAssetSelectedOwnerChanged, GetCurrentSelectionNameOwner);
+            m_popupOwner = ConfigureListSelectionPopupForUITextField(m_assetFilterOwner, () => AssetColorExpanderMod.Controller?.FilterBuildingsByText(m_assetFilterOwner.text), OnAssetSelectedOwnerChanged, GetCurrentSelectionNameOwner);
             m_popupOwner.height = 290;
             m_popupOwner.width -= 20;
 

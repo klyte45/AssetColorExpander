@@ -16,10 +16,9 @@ using static Klyte.Commons.UI.DefaultEditorUILib;
 namespace Klyte.AssetColorExpander.UI
 {
 
-    public class ACEBuildingRuleEditor : UICustomControl
+    public class ACEPropRuleEditor : UICustomControl
     {
         public UIPanel MainContainer { get; protected set; }
-
 
         private const string DISTRICT_SELECTOR_TEMPLATE = "K45_ACE_DistrictSelectorTemplate";
         private const string COLOR_SELECTOR_TEMPLATE = "K45_ACE_ColorListSelectorTemplate";
@@ -37,8 +36,13 @@ namespace Klyte.AssetColorExpander.UI
         private UIDropDown m_subService;
         private UIDropDown m_level;
         private UIDropDown m_class;
+        private UIDropDown m_parentClass;
         private UITextField m_assetFilter;
         private UIListBox m_popup;
+        private UITextField m_assetFilterBuilding;
+        private UIListBox m_popupBuilding;
+        private UITextField m_assetFilterNet;
+        private UIListBox m_popupNet;
 
 
         private UIDropDown m_colorMode;
@@ -83,20 +87,35 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_BASICTAB_NAME"), out m_name, helperSettings, OnSetName);
             helperSettings.AddSpace(5);
 
-            AddDropdown(Locale.Get("K45_ACE_BASICTAB_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckTypeBuilding)).Select(x => Locale.Get("K45_ACE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
+            AddDropdown(Locale.Get("K45_ACE_BASICTAB_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckTypeProp)).Select(x => Locale.Get("K45_ACE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
             AddButtonInEditorRow(m_ruleFilter, CommonsSpriteNames.K45_QuestionMark, Help_RuleFilter);
             AddDropdown(Locale.Get("K45_ACE_BASICTAB_SERVICEFILTER"), out m_service, helperSettings, (Enum.GetValues(typeof(ItemClass.Service)) as ItemClass.Service[]).OrderBy(x => (int)x).Select(x => x == 0 ? Locale.Get("K45_ACE_ANYSERVICE_OPTION") : $"{x}").ToArray(), OnChangeServiceFilter);
             AddDropdown(Locale.Get("K45_ACE_BASICTAB_SUBSERVICEFILTER"), out m_subService, helperSettings, Enum.GetNames(typeof(ItemClass.SubService)).Select(x => $"{x}").ToArray(), OnChangeSubServiceFilter);
             AddDropdown(Locale.Get("K45_ACE_BASICTAB_LEVELFILTER"), out m_level, helperSettings, (Enum.GetValues(typeof(ItemClass.Level)) as ItemClass.Level[]).OrderBy(x => (int)x).Select(x => $"{x}").ToArray(), OnChangeLevelFilter);
             AddDropdown(Locale.Get("K45_ACE_BASICTAB_CLASSFILTER"), out m_class, helperSettings, new string[0], OnChangeClassFilter);
-            AddTextField(Locale.Get("K45_ACE_BUILDINGRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
+            AddDropdown(Locale.Get("K45_ACE_BASICTAB_CLASSFILTER"), out m_parentClass, helperSettings, new string[0], OnChangeParentClassFilter);
+            AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
-            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.FilterBuildingsByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.FilterPropsByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
             m_popup.height = 290;
             m_popup.width -= 20;
 
-            AddLibBox<ACEBuildingRuleLib, BuildingCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
+            AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT_BUILDING"), out m_assetFilterBuilding, helperSettings, null);
+
+            KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterBuilding);
+            m_popupBuilding = ConfigureListSelectionPopupForUITextField(m_assetFilterBuilding, () => AssetColorExpanderMod.Controller?.FilterBuildingsByText(m_assetFilterBuilding.text), OnAssetSelectedBuildingChanged, GetCurrentSelectionNameBuilding);
+            m_popupBuilding.height = 290;
+            m_popupBuilding.width -= 20;
+
+            AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT_NET"), out m_assetFilterNet, helperSettings, null);
+
+            KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterNet);
+            m_popupNet = ConfigureListSelectionPopupForUITextField(m_assetFilterNet, () => AssetColorExpanderMod.Controller?.FilterNetsByText(m_assetFilterNet.text), OnAssetSelectedNetChanged, GetCurrentSelectionNameNet);
+            m_popupNet.height = 290;
+            m_popupNet.width -= 20;
+
+            AddLibBox<ACEPropRuleLib, PropCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
             AddDropdown(Locale.Get("K45_ACE_COLORMODE"), out m_colorMode, helperAppearence, Enum.GetNames(typeof(ColoringMode)).Select(x => Locale.Get("K45_ACE_COLORINGMODE", x)).ToArray(), OnChangeColoringMode);
             AddButtonInEditorRow(m_colorMode, CommonsSpriteNames.K45_QuestionMark, Help_ColorMode);
@@ -138,30 +157,43 @@ namespace Klyte.AssetColorExpander.UI
         }
 
         private void Help_DistrictFilter() => K45DialogControl.ShowModalHelp("General.DistrictFilter", Locale.Get("K45_ACE_BASICTAB_DISTRICTFILTER"), 0);
-        private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Building.ColoringMode", Locale.Get("K45_ACE_BUILDINGRULES_COLORMODE"), 0);
-        private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Building.TypeOfRule", Locale.Get("K45_ACE_BUILDINGRULES_RULEFILTER"), 0);
-        private void AddColor() => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Prop.ColoringMode", Locale.Get("K45_ACE_PROPRULES_COLORMODE"), 0);
+        private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Prop.TypeOfRule", Locale.Get("K45_ACE_PROPRULES_RULEFILTER"), 0);
+        private void AddColor() => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             x.m_colorList.Add(Color.white);
             UpdateColorList(ref x);
         });
         public void Start()
         {
-            m_class.items = AssetColorExpanderMod.Controller?.AllClassesBuilding?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
-            ACEPanel.Instance.BuildingTab.RuleList.EventSelectionChanged += OnChangeTab;
+            m_class.items = AssetColorExpanderMod.Controller?.AllClassesProp?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
+            m_parentClass.items = AssetColorExpanderMod.Controller?.AllClassesBuilding?.Keys?.Union(AssetColorExpanderMod.Controller?.AllClassesNet?.Keys).Select(x => x.name)?.Distinct()?.OrderBy(x => x)?.ToArray() ?? new string[0];
+            ACEPanel.Instance.PropTab.RuleList.EventSelectionChanged += OnChangeTab;
         }
 
         #region Prefab handling
         private string GetCurrentSelectionName()
         {
             string name = "";
-            SafeObtain((ref BuildingCityDataRuleXml x) => name = x.AssetName);
+            SafeObtain((ref PropCityDataRuleXml x) => name = x.AssetNameSelf);
+            return name ?? "";
+        }
+        private string GetCurrentSelectionNameBuilding()
+        {
+            string name = "";
+            SafeObtain((ref PropCityDataRuleXml x) => name = x.AssetNameBuilding);
+            return name ?? "";
+        }
+        private string GetCurrentSelectionNameNet()
+        {
+            string name = "";
+            SafeObtain((ref PropCityDataRuleXml x) => name = x.AssetNameNet);
             return name ?? "";
         }
         #endregion
 
         #region District
-        private void UpdateDistrictList(ref BuildingCityDataRuleXml reference)
+        private void UpdateDistrictList(ref PropCityDataRuleXml reference)
         {
             var districts = DistrictUtils.GetValidParks().ToDictionary(x => x.Key, x => 0x100 | x.Value).Union(DistrictUtils.GetValidDistricts()).OrderBy(x => x.Value == 0 ? "" : x.Key).ToDictionary(x => x.Key, x => x.Value);
             ref DistrictPark[] parkBuffer = ref Singleton<DistrictManager>.instance.m_parks.m_buffer;
@@ -176,7 +208,7 @@ namespace Klyte.AssetColorExpander.UI
                 {
                     checkbox.eventCheckChanged += (x, y) =>
                     {
-                        SafeObtain((ref BuildingCityDataRuleXml z) =>
+                        SafeObtain((ref PropCityDataRuleXml z) =>
                         {
                             if (ushort.TryParse(x.stringUserData, out ushort districtIdx))
                             {
@@ -265,7 +297,7 @@ namespace Klyte.AssetColorExpander.UI
         #region ColorList
 
         private bool m_isLoadingColors = false;
-        private void UpdateColorList(ref BuildingCityDataRuleXml reference)
+        private void UpdateColorList(ref PropCityDataRuleXml reference)
         {
             UIPanel[] colorPickers = m_colorFieldTemplateListColors.SetItemCount(reference.m_colorList.Count);
             m_isLoadingColors = true;
@@ -275,7 +307,7 @@ namespace Klyte.AssetColorExpander.UI
                 if (colorField.objectUserData == null)
                 {
                     colorField.eventSelectedColorChanged += (x, y) =>
-                        SafeObtain((ref BuildingCityDataRuleXml z) =>
+                        SafeObtain((ref PropCityDataRuleXml z) =>
                             {
                                 if (!m_isLoadingColors && z.m_colorList.Count > x.parent.zOrder)
                                 {
@@ -289,7 +321,6 @@ namespace Klyte.AssetColorExpander.UI
                                     {
                                         z.m_colorList[x.parent.zOrder] = y;
                                     }
-                                    BuildingManager.instance.UpdateBuildingColors();
                                     m_isLoadingColors = false;
                                 }
                             });
@@ -321,7 +352,7 @@ namespace Klyte.AssetColorExpander.UI
         }
         #endregion
 
-        private delegate void SafeObtainMethod(ref BuildingCityDataRuleXml x);
+        private delegate void SafeObtainMethod(ref PropCityDataRuleXml x);
         private void SafeObtain(SafeObtainMethod action, int? targetTab = null)
         {
             int effTargetTab = Math.Max(-1, targetTab ?? m_currentIdx);
@@ -330,11 +361,10 @@ namespace Klyte.AssetColorExpander.UI
                 return;
             }
 
-            if (effTargetTab < ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Length)
+            if (effTargetTab < ACEPropConfigRulesData.Instance.Rules.m_dataArray.Length)
             {
-                action(ref ACEBuildingConfigRulesData.Instance.Rules.m_dataArray[effTargetTab]);
-                AssetColorExpanderMod.Controller.CleanCacheBuilding();
-                BuildingManager.instance.UpdateBuildingColors();
+                action(ref ACEPropConfigRulesData.Instance.Rules.m_dataArray[effTargetTab]);
+                AssetColorExpanderMod.Controller.CleanCacheProp();
             }
         }
         private void OnChangeTab(int obj)
@@ -346,7 +376,7 @@ namespace Klyte.AssetColorExpander.UI
 
         private void ReloadData()
         {
-            SafeObtain((ref BuildingCityDataRuleXml x) =>
+            SafeObtain((ref PropCityDataRuleXml x) =>
             {
                 m_name.text = x.SaveName;
 
@@ -360,11 +390,19 @@ namespace Klyte.AssetColorExpander.UI
                 m_subService.selectedIndex = (int)x.SubService;
                 m_level.selectedIndex = (int)x.Level;
                 m_class.selectedValue = x.ItemClassName;
+                m_parentClass.selectedValue = x.ItemClassName;
 
-                string targetAsset = x.AssetName ?? "";
-                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                string targetAsset = x.AssetNameSelf ?? "";
+                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilter.text = entry?.Key ?? "";
-                m_lastSelection = PrefabCollection<BuildingInfo>.FindLoaded(entry?.Value ?? "");
+
+                targetAsset = x.AssetNameBuilding ?? "";
+                entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                m_assetFilterBuilding.text = entry?.Key ?? "";
+
+                targetAsset = x.AssetNameNet ?? "";
+                entry = AssetColorExpanderMod.Controller?.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                m_assetFilterNet.text = entry?.Key ?? "";
 
                 ApplyRuleCheck(x);
 
@@ -381,7 +419,7 @@ namespace Klyte.AssetColorExpander.UI
             });
         }
 
-        private void ApplyColorUIRules(BuildingCityDataRuleXml x)
+        private void ApplyColorUIRules(PropCityDataRuleXml x)
         {
             bool isPastel = x.ColoringMode == ColoringMode.PASTEL_FULL_VIVID || x.ColoringMode == ColoringMode.PASTEL_HIGHER_SATURATION || x.ColoringMode == ColoringMode.PASTEL_ORIG;
             m_allowRed.isVisible = isPastel;
@@ -391,24 +429,34 @@ namespace Klyte.AssetColorExpander.UI
             m_listColorContainer.isVisible = x.ColoringMode == ColoringMode.LIST;
         }
 
-        private void ApplyRuleCheck(BuildingCityDataRuleXml x)
+        private void ApplyRuleCheck(PropCityDataRuleXml x)
         {
-            m_service.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL;
-            m_subService.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL;
-            m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL;
-            m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ITEM_CLASS;
-            m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ASSET_NAME;
+            m_service.parent.isVisible =
+                   x.RuleCheckType == RuleCheckTypeProp.SERVICE
+                || x.RuleCheckType == RuleCheckTypeProp.SERVICE_LEVEL
+                || x.RuleCheckType == RuleCheckTypeProp.SERVICE_SUBSERVICE
+                || x.RuleCheckType == RuleCheckTypeProp.SERVICE_SUBSERVICE_LEVEL
+                || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE
+                || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_LEVEL
+                || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE
+                || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL;
+            m_subService.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.SERVICE_SUBSERVICE || x.RuleCheckType == RuleCheckTypeProp.SERVICE_SUBSERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL;
+            m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeProp.SERVICE_SUBSERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL;
+            m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ITEM_CLASS;
+            m_parentClass.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.PARENT_ITEM_CLASS;
+            m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_SELF;
+            m_assetFilterBuilding.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING;
+            m_assetFilterNet.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET;
         }
 
         private string m_clipboard;
-        private BuildingInfo m_lastSelection;
 
         private string GetRuleSerialized()
         {
             int effTargetTab = Math.Max(-1, m_currentIdx);
-            if (effTargetTab >= 0 && effTargetTab < ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Length)
+            if (effTargetTab >= 0 && effTargetTab < ACEPropConfigRulesData.Instance.Rules.m_dataArray.Length)
             {
-                return XmlUtils.DefaultXmlSerialize(ACEBuildingConfigRulesData.Instance.Rules.m_dataArray[effTargetTab]);
+                return XmlUtils.DefaultXmlSerialize(ACEPropConfigRulesData.Instance.Rules.m_dataArray[effTargetTab]);
             }
             else
             {
@@ -416,22 +464,22 @@ namespace Klyte.AssetColorExpander.UI
             }
         }
 
-        private void OnLoadRule(string obj) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnLoadRule(string obj) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
-            x = XmlUtils.DefaultXmlDeserialize<BuildingCityDataRuleXml>(obj);
-            ACEPanel.Instance.BuildingTab.RuleList.FixTabstrip();
+            x = XmlUtils.DefaultXmlDeserialize<PropCityDataRuleXml>(obj);
+            ACEPanel.Instance.PropTab.RuleList.FixTabstrip();
             ReloadData();
         });
         private void OnPasteRule() => OnLoadRule(m_clipboard);
-        private void OnCopyRule() => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnCopyRule() => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             m_clipboard = XmlUtils.DefaultXmlSerialize(x);
             m_pasteSettings.isVisible = true;
         });
 
-        private void OnSetDistrictsAsBlacklist(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) => { x.SelectedDistrictsIsBlacklist = isChecked; m_districtWhiteList.isChecked = !isChecked; });
-        private void OnSetDistrictsAsWhitelist(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) => { x.SelectedDistrictsIsBlacklist = !isChecked; m_districtBlackList.isChecked = !isChecked; });
-        private void OnChangeDistrictRestrictionOrder(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnSetDistrictsAsBlacklist(bool isChecked) => SafeObtain((ref PropCityDataRuleXml x) => { x.SelectedDistrictsIsBlacklist = isChecked; m_districtWhiteList.isChecked = !isChecked; });
+        private void OnSetDistrictsAsWhitelist(bool isChecked) => SafeObtain((ref PropCityDataRuleXml x) => { x.SelectedDistrictsIsBlacklist = !isChecked; m_districtBlackList.isChecked = !isChecked; });
+        private void OnChangeDistrictRestrictionOrder(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (sel >= 0)
             {
@@ -439,12 +487,12 @@ namespace Klyte.AssetColorExpander.UI
             }
         });
 
-        private void OnSetName(string text) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnSetName(string text) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (!text.IsNullOrWhiteSpace())
             {
                 x.SaveName = text;
-                ACEPanel.Instance.BuildingTab.RuleList.FixTabstrip();
+                ACEPanel.Instance.PropTab.RuleList.FixTabstrip();
                 OnChangeTab(m_currentIdx);
             }
             else
@@ -453,57 +501,100 @@ namespace Klyte.AssetColorExpander.UI
             }
         });
 
-        private void OnChangeRuleCheckType(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnChangeRuleCheckType(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
-            x.RuleCheckType = (RuleCheckTypeBuilding)sel;
+            x.RuleCheckType = (RuleCheckTypeProp)sel;
             ApplyRuleCheck(x);
         });
 
 
-        private void OnAssetSelectedChanged(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnAssetSelectedChanged(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.BuildingsLoaded.TryGetValue(m_popup.items[sel], out string assetName))
+            if (sel >= 0 && AssetColorExpanderMod.Controller.PropsLoaded.TryGetValue(m_popup.items[sel], out string assetName))
             {
-                x.AssetName = assetName;
-                m_lastSelection = PrefabCollection<BuildingInfo>.FindLoaded(assetName);
+                x.AssetNameSelf = assetName;
                 m_assetFilter.text = m_popup.items[sel];
             }
             else
             {
-                string targetAsset = x.AssetName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                string targetAsset = x.AssetNameSelf ?? "";
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilter.text = entry?.Key ?? "";
             }
         });
-        private void OnChangeClassFilter(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnAssetSelectedBuildingChanged(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
+        {
+            if (sel >= 0 && AssetColorExpanderMod.Controller.BuildingsLoaded.TryGetValue(m_popupBuilding.items[sel], out string assetName))
+            {
+                x.AssetNameBuilding = assetName;
+                m_assetFilterBuilding.text = m_popupBuilding.items[sel];
+            }
+            else
+            {
+                string targetAsset = x.AssetNameBuilding ?? "";
+                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                m_assetFilterBuilding.text = entry?.Key ?? "";
+            }
+        });
+        private void OnAssetSelectedNetChanged(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
+        {
+            if (sel >= 0 && AssetColorExpanderMod.Controller.NetsLoaded.TryGetValue(m_popupNet.items[sel], out string assetName))
+            {
+                x.AssetNameNet = assetName;
+                m_assetFilterNet.text = m_popupNet.items[sel];
+            }
+            else
+            {
+                string targetAsset = x.AssetNameNet ?? "";
+                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                m_assetFilterNet.text = entry?.Key ?? "";
+            }
+        });
+
+        private void OnChangeClassFilter(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (sel >= 0)
             {
                 x.ItemClassName = m_class.items[sel];
+                if (m_parentClass.selectedValue != x.ItemClassName)
+                {
+                    m_parentClass.selectedValue = x.ItemClassName;
+                }
             }
         });
-        private void OnChangeLevelFilter(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnChangeParentClassFilter(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
+        {
+            if (sel >= 0)
+            {
+                x.ItemClassName = m_parentClass.items[sel];
+                if (m_class.selectedValue != x.ItemClassName)
+                {
+                    m_class.selectedValue = x.ItemClassName;
+                }
+            }
+        });
+        private void OnChangeLevelFilter(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (sel >= 0)
             {
                 x.Level = (ItemClass.Level)sel - 1;
             }
         });
-        private void OnChangeSubServiceFilter(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnChangeSubServiceFilter(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (sel >= 0)
             {
                 x.SubService = (ItemClass.SubService)sel;
             }
         });
-        private void OnChangeServiceFilter(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnChangeServiceFilter(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (sel >= 0)
             {
                 x.Service = (ItemClass.Service)sel;
             }
         });
-        private void OnChangeColoringMode(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnChangeColoringMode(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (sel >= 0)
             {
@@ -512,7 +603,7 @@ namespace Klyte.AssetColorExpander.UI
             }
         });
 
-        private void OnAllowRedChanged(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnAllowRedChanged(bool isChecked) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (isChecked)
             {
@@ -523,7 +614,7 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_REDS;
             }
         });
-        private void OnAllowGreenChanged(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnAllowGreenChanged(bool isChecked) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (isChecked)
             {
@@ -534,7 +625,7 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_GREENS;
             }
         });
-        private void OnAllowBlueChanged(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnAllowBlueChanged(bool isChecked) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (isChecked)
             {
@@ -545,7 +636,7 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_BLUES;
             }
         });
-        private void OnAllowNeutralChanged(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        private void OnAllowNeutralChanged(bool isChecked) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
             if (isChecked)
             {

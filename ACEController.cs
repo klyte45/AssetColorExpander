@@ -34,12 +34,14 @@ namespace Klyte.AssetColorExpander
             VEHICLE,
             PARKED_VEHICLE,
             CITIZEN,
-            PROP
+            PROP_PLACED
         }
 
         public Dictionary<ItemClass, List<BuildingInfo>> AllClassesBuilding { get; private set; }
         public Dictionary<ItemClass, List<VehicleInfo>> AllClassesVehicle { get; private set; }
         public Dictionary<ItemClass, List<CitizenInfo>> AllClassesCitizen { get; private set; }
+        public Dictionary<ItemClass, List<PropInfo>> AllClassesProp { get; private set; }
+        public Dictionary<ItemClass, List<NetInfo>> AllClassesNet{ get; private set; }
         public Dictionary<Type, List<CitizenInfo>> AllAICitizen { get; private set; }
 
         protected override void StartActions()
@@ -65,6 +67,18 @@ namespace Klyte.AssetColorExpander
               .ToDictionary(x => x.First().m_class, x => x.ToList());
 
             AllClassesCitizen = ((FastList<PrefabCollection<CitizenInfo>.PrefabData>)typeof(PrefabCollection<CitizenInfo>).GetField("m_scenePrefabs", RedirectorUtils.allFlags).GetValue(null))
+              .m_buffer
+              .Select(x => x.m_prefab)
+              .Where(x => x?.m_class != null)
+              .GroupBy(x => x.m_class.name)
+              .ToDictionary(x => x.First().m_class, x => x.ToList());
+            AllClassesProp = ((FastList<PrefabCollection<PropInfo>.PrefabData>)typeof(PrefabCollection<PropInfo>).GetField("m_scenePrefabs", RedirectorUtils.allFlags).GetValue(null))
+              .m_buffer
+              .Select(x => x.m_prefab)
+              .Where(x => x?.m_class != null)
+              .GroupBy(x => x.m_class.name)
+              .ToDictionary(x => x.First().m_class, x => x.ToList());
+            AllClassesNet = ((FastList<PrefabCollection<NetInfo>.PrefabData>)typeof(PrefabCollection<NetInfo>).GetField("m_scenePrefabs", RedirectorUtils.allFlags).GetValue(null))
               .m_buffer
               .Select(x => x.m_prefab)
               .Where(x => x?.m_class != null)
@@ -134,6 +148,7 @@ namespace Klyte.AssetColorExpander
             CleanCacheVehicle();
             CleanCacheBuilding();
             CleanCacheCitizen();
+            CleanCacheProp();
         }
         public void CleanCacheVehicle()
         {
@@ -153,6 +168,11 @@ namespace Klyte.AssetColorExpander
         {
             UpdatedRules[(int)CacheOrder.CITIZEN] = new bool[CitizenManager.MAX_INSTANCE_COUNT];
             CachedColor[(int)CacheOrder.CITIZEN] = new Color?[CitizenManager.MAX_INSTANCE_COUNT];
+        }
+        public void CleanCacheProp()
+        {
+            UpdatedRules[(int)CacheOrder.PROP_PLACED] = new bool[PropManager.MAX_PROP_COUNT];
+            CachedColor[(int)CacheOrder.PROP_PLACED] = new Color?[PropManager.MAX_PROP_COUNT];
         }
 
         public void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders<BuildingInfo>($"{DEFAULT_XML_NAME_BUILDING}.xml", LoadDescriptorsFromXml);
@@ -175,7 +195,7 @@ namespace Klyte.AssetColorExpander
 
         #region Prefab loading
 
-        private Dictionary<string, string> m_vehiclesLoaded, m_buildingsLoaded, m_citizensLoaded;
+        private Dictionary<string, string> m_vehiclesLoaded, m_buildingsLoaded, m_citizensLoaded, m_propsLoaded, m_netsLoaded;
 
         public Dictionary<string, string> VehiclesLoaded
         {
@@ -207,11 +227,33 @@ namespace Klyte.AssetColorExpander
                     m_citizensLoaded = GetInfos<CitizenInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
                 }
                 return m_citizensLoaded;
+
+
+            }
+        }
+        public Dictionary<string, string> PropsLoaded
+        {
+            get {
+                if (m_propsLoaded == null)
+                {
+                    m_propsLoaded = GetInfos<PropInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
+                }
+                return m_propsLoaded;
+            }
+        }
+        public Dictionary<string, string> NetsLoaded
+        {
+            get {
+                if (m_netsLoaded == null)
+                {
+                    m_netsLoaded = GetInfos<NetInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
+                }
+                return m_netsLoaded;
             }
         }
 
 
-        private static string GetListName(PrefabInfo x) => (x?.name?.EndsWith("_Data") ?? false) ? $"{x?.GetLocalizedTitle()}" : x?.name ?? "";
+        private static string GetListName(PrefabInfo x) => (x?.name?.EndsWith("_Data") ?? false) ? $"{x?.GetLocalizedTitle()} (id: {x.name.Split('.')[0]})" : x?.name ?? "";
         private List<T> GetInfos<T>() where T : PrefabInfo
         {
             var list = new List<T>();
@@ -235,13 +277,25 @@ namespace Klyte.AssetColorExpander
             .OrderBy((x) => x)
             .ToArray();
 
-        public string[] FilterBuildingByText(string text) => BuildingsLoaded
+        public string[] FilterBuildingsByText(string text) => BuildingsLoaded
             .ToList()
             .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
             .Select(x => x.Key)
             .OrderBy((x) => x)
             .ToArray();
         public string[] FilterCitizensByText(string text) => CitizensLoaded
+            .ToList()
+            .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
+            .Select(x => x.Key)
+            .OrderBy((x) => x)
+            .ToArray();
+        public string[] FilterPropsByText(string text) => PropsLoaded
+            .ToList()
+            .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
+            .Select(x => x.Key)
+            .OrderBy((x) => x)
+            .ToArray();
+        public string[] FilterNetsByText(string text) => NetsLoaded
             .ToList()
             .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
             .Select(x => x.Key)
