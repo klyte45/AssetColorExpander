@@ -13,8 +13,8 @@ namespace Klyte.AssetColorExpander
     {
         public void Awake() => AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(ACEBuildingOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
 
-        public static Dictionary<string, BuildingAssetFolderRulesXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigData;
-        public static Dictionary<ushort, BasicColorConfigurationXml> RulesCache => AssetColorExpanderMod.Controller?.m_cachedRules;
+        public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataBuildings;
+        public static Dictionary<ushort, BasicColorConfigurationXml> RulesCache => AssetColorExpanderMod.Controller?.m_cachedRulesBuilding;
 
         public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result)
         {
@@ -31,7 +31,7 @@ namespace Klyte.AssetColorExpander
                 byte district = DistrictManager.instance.GetDistrict(data.m_position);
                 byte park = DistrictManager.instance.GetPark(data.m_position);
                 itemData = ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
-                if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out BuildingAssetFolderRulesXml itemDataAsset))
+                if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out BuildingAssetFolderRuleXml itemDataAsset))
                 {
                     itemData = itemDataAsset;
                 }

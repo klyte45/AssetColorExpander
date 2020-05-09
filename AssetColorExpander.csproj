@@ -63,6 +63,8 @@
     <Compile Include="ACEController.cs" />
     <Compile Include="commons\Utils\PrefabUtils.cs" />
     <Compile Include="commons\Utils\UITemplateUtils.cs" />
+    <Compile Include="Data\ACEVehicleConfigRulesData.cs" />
+    <Compile Include="Overrides\ACEVehicleOverrides.cs" />
     <Compile Include="Overrides\ACEBuildingOverrides.cs" />
     <Compile Include="commons\Interfaces\ILibableAsContainer.cs" />
     <Compile Include="Data\ACEBuildingConfigRulesData.cs" />
@@ -169,13 +171,16 @@
     <Compile Include="UI\ACEBuildingRuleEditor.cs" />
     <Compile Include="commons\UI\BasicRulesList.cs" />
     <Compile Include="commons\UI\DefaultEditorUILib.cs" />
-    <Compile Include="XML\BuildingAssetFolderRulesXml.cs" />
-    <Compile Include="XML\ACEBuildingConfig.cs" />
-    <Compile Include="XML\BuildingCityDataRuleXml.cs" />
+    <Compile Include="XML\Building\BuildingAssetFolderRulesXml.cs" />
+    <Compile Include="XML\ACERulesetContainer.cs" />
+    <Compile Include="XML\Building\BuildingCityDataRuleXml.cs" />
     <Compile Include="XML\DistrictRestrictionOrder.cs" />
     <Compile Include="XML\BasicColorConfigurationXml.cs" />
     <Compile Include="XML\ColoringMode.cs" />
-    <Compile Include="XML\RuleCheckType.cs" />
+    <Compile Include="XML\Building\RuleCheckTypeBuilding.cs" />
+    <Compile Include="XML\Vehicle\BuildingCityDataRuleXml.cs" />
+    <Compile Include="XML\Vehicle\RuleCheckTypeBuilding.cs" />
+    <Compile Include="XML\Vehicle\VehicleAssetFolderRulesXml.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="commons\UI\i18n\en.properties" />

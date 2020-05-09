@@ -1,7 +1,16 @@
+using ColossalFramework.IO;
+using ColossalFramework.Math;
 using Klyte.AssetColorExpander.UI;
+using Klyte.AssetColorExpander.XML;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Interfaces;
+using Klyte.Commons.Utils;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Xml.Serialization;
+using UnityEngine;
 
 [assembly: AssemblyVersion("0.0.0.*")]
 namespace Klyte.AssetColorExpander
@@ -29,8 +38,7 @@ namespace Klyte.AssetColorExpander
         //    namesFilesButton.textColor = Color.yellow;
         //    KlyteMonoUtils.LimitWidth(namesFilesButton, 710);
         //    namesFilesButton.text = fileInfo.FullName + Path.DirectorySeparatorChar;
-        //}
-
+        //}       
 
     }
 }

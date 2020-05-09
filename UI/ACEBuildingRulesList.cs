@@ -7,7 +7,7 @@ using Klyte.Commons.Utils;
 
 namespace Klyte.AssetColorExpander.UI
 {
-    public class ACEBuildingRulesList : BasicRulesList<BuildingCityDataRuleXml, ACEBuildingRulesetLib, ACEBuildingConfig<BuildingCityDataRuleXml>>
+    public class ACEBuildingRulesList : BasicRulesList<BuildingCityDataRuleXml, ACEBuildingRulesetLib, ACERulesetContainer<BuildingCityDataRuleXml>>
     {
         protected override ref BuildingCityDataRuleXml[] ReferenceData => ref ACEBuildingConfigRulesData.Instance.Rules.m_dataArray;
 

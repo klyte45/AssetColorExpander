@@ -8,8 +8,8 @@ namespace Klyte.AssetColorExpander.Data
     public class ACEBuildingConfigRulesData : DataExtensorBase<ACEBuildingConfigRulesData>
     {
         [XmlElement("rules")]
-        public ACEBuildingConfig<BuildingCityDataRuleXml> Rules { get; private set; } = new ACEBuildingConfig<BuildingCityDataRuleXml>();
-        public override string SaveId => "K45_ACE_ACEConfigRulesData";
+        public ACERulesetContainer<BuildingCityDataRuleXml> Rules { get; private set; } = new ACERulesetContainer<BuildingCityDataRuleXml>();
+        public override string SaveId => "K45_ACE_ACEBuildingConfigRulesData";
 
     }
 

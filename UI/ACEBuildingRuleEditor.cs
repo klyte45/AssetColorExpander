@@ -85,7 +85,7 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_BUILDINGRULES_NAME"), out m_name, helperSettings, OnSetName);
             helperSettings.AddSpace(5);
 
-            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckType)).Select(x => Locale.Get("K45_ACE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
+            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckTypeBuilding)).Select(x => Locale.Get("K45_ACE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
             AddButtonInEditorRow(m_ruleFilter, CommonsSpriteNames.K45_QuestionMark, Help_RuleFilter);
             AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_SERVICEFILTER"), out m_service, helperSettings, (Enum.GetValues(typeof(ItemClass.Service)) as ItemClass.Service[]).OrderBy(x => (int)x).Select(x => x == 0 ? Locale.Get("K45_ACE_ANYSERVICE_OPTION") : $"{x}").ToArray(), OnChangeServiceFilter);
             AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_SUBSERVICEFILTER"), out m_subService, helperSettings, Enum.GetNames(typeof(ItemClass.SubService)).Select(x => $"{x}").ToArray(), OnChangeSubServiceFilter);
@@ -135,7 +135,6 @@ namespace Klyte.AssetColorExpander.UI
             m_checkboxTemplateListDistrict = new UITemplateList<UIPanel>(m_districtList, DISTRICT_SELECTOR_TEMPLATE);
 
 
-            ACEPanel.Instance.RuleList.EventSelectionChanged += OnChangeTab;
             MainContainer.isVisible = false;
             m_pasteSettings.isVisible = false;
         }
@@ -148,7 +147,11 @@ namespace Klyte.AssetColorExpander.UI
             x.m_colorList.Add(Color.white);
             UpdateColorList(ref x);
         });
-        public void Start() => m_class.items = AssetColorExpanderMod.Controller?.AllClassesBuilding?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
+        public void Start()
+        {
+            m_class.items = AssetColorExpanderMod.Controller?.AllClassesBuilding?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
+            ACEPanel.Instance.BuildingTab.RuleList.EventSelectionChanged += OnChangeTab;
+        }
 
         #region Prefab handling
         public Dictionary<string, string> BuildingsLoaded
@@ -425,11 +428,11 @@ namespace Klyte.AssetColorExpander.UI
 
         private void ApplyRuleCheck(BuildingCityDataRuleXml x)
         {
-            m_service.parent.isVisible = x.RuleCheckType == RuleCheckType.SERVICE || x.RuleCheckType == RuleCheckType.SERVICE_LEVEL || x.RuleCheckType == RuleCheckType.SERVICE_SUBSERVICE;
-            m_subService.parent.isVisible = x.RuleCheckType == RuleCheckType.SERVICE_SUBSERVICE;
-            m_level.parent.isVisible = x.RuleCheckType == RuleCheckType.SERVICE_LEVEL;
-            m_class.parent.isVisible = x.RuleCheckType == RuleCheckType.ITEM_CLASS;
-            m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckType.ASSET_NAME;
+            m_service.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE;
+            m_subService.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE;
+            m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL;
+            m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ITEM_CLASS;
+            m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ASSET_NAME;
         }
 
         private string m_clipboard;
@@ -451,7 +454,7 @@ namespace Klyte.AssetColorExpander.UI
         private void OnLoadRule(string obj) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {
             x = XmlUtils.DefaultXmlDeserialize<BuildingCityDataRuleXml>(obj);
-            ACEPanel.Instance.RuleList.FixTabstrip();
+            ACEPanel.Instance.BuildingTab.RuleList.FixTabstrip();
             ReloadData();
         });
         private void OnPasteRule() => OnLoadRule(m_clipboard);
@@ -476,7 +479,7 @@ namespace Klyte.AssetColorExpander.UI
             if (!text.IsNullOrWhiteSpace())
             {
                 x.SaveName = text;
-                ACEPanel.Instance.RuleList.FixTabstrip();
+                ACEPanel.Instance.BuildingTab.RuleList.FixTabstrip();
                 OnChangeTab(m_currentIdx);
             }
             else
@@ -487,7 +490,7 @@ namespace Klyte.AssetColorExpander.UI
 
         private void OnChangeRuleCheckType(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {
-            x.RuleCheckType = (RuleCheckType)sel;
+            x.RuleCheckType = (RuleCheckTypeBuilding)sel;
             ApplyRuleCheck(x);
         });
 

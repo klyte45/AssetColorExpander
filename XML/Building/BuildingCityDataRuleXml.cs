@@ -21,7 +21,7 @@ namespace Klyte.AssetColorExpander.XML
         [XmlAttribute("districtRestrictionOrder")] public DistrictRestrictionOrder DistrictRestrictionOrder { get; set; }
 
         [XmlAttribute]
-        public RuleCheckType RuleCheckType { get; set; }
+        public RuleCheckTypeBuilding RuleCheckType { get; set; }
 
         internal bool Accepts(BuildingInfo info, byte district, byte park)
         {
@@ -29,17 +29,17 @@ namespace Klyte.AssetColorExpander.XML
             {
                 switch (RuleCheckType)
                 {
-                    case RuleCheckType.ITEM_CLASS:
+                    case RuleCheckTypeBuilding.ITEM_CLASS:
                         return info.m_class.name == ItemClassName;
-                    case RuleCheckType.SERVICE:
+                    case RuleCheckTypeBuilding.SERVICE:
                         return Service == ItemClass.Service.None || info.m_class.m_service == Service;
-                    case RuleCheckType.SERVICE_SUBSERVICE:
+                    case RuleCheckTypeBuilding.SERVICE_SUBSERVICE:
                         return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_subService == SubService;
-                    case RuleCheckType.SERVICE_LEVEL:
+                    case RuleCheckTypeBuilding.SERVICE_LEVEL:
                         return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_level == Level;
-                    case RuleCheckType.SERVICE_SUBSERVICE_LEVEL:
+                    case RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL:
                         return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_subService == SubService && info.m_class.m_level == Level;
-                    case RuleCheckType.ASSET_NAME:
+                    case RuleCheckTypeBuilding.ASSET_NAME:
                         return info.name == AssetName;
                 }
             }
