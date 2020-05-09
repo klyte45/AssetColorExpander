@@ -70,10 +70,10 @@ namespace Klyte.AssetColorExpander.UI
             MainContainer.autoLayoutPadding = new RectOffset(0, 0, 4, 4);
 
             KlyteMonoUtils.CreateTabsComponent(out m_tabstrip, out UITabContainer m_tabContainer, MainContainer.transform, "TextEditor", new Vector4(0, 0, MainContainer.width, 40), new Vector4(0, 0, MainContainer.width, MainContainer.height - 40));
-            UIPanel m_tabSettings = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, KlyteResourceLoader.GetDefaultSpriteNameFor(CommonsSpriteNames.K45_Settings), "K45_ACE_BUILDINGRULES_BASIC_SETTINGS", "RcSettings");
-            UIPanel m_tabAppearence = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, KlyteResourceLoader.GetDefaultSpriteNameFor(CommonsSpriteNames.K45_AutoColorIcon), "K45_ACE_BUILDINGRULES_APPEARANCE_SETTINGS", "RcAppearence");
-            UIPanel m_tabDistricts = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, "ToolbarIconDistrict", "K45_ACE_BUILDINGRULES_DISTRICT_SETTINGS", "RcDistricts");
-            UIPanel m_tabLib = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, KlyteResourceLoader.GetDefaultSpriteNameFor(CommonsSpriteNames.K45_Load), "K45_ACE_BUILDINGRULES_LIB_SETTINGS", "RcLib");
+            UIPanel m_tabSettings = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, KlyteResourceLoader.GetDefaultSpriteNameFor(CommonsSpriteNames.K45_Settings), "K45_ACE_BASICTAB_BASIC_SETTINGS", "RcSettings");
+            UIPanel m_tabAppearence = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, KlyteResourceLoader.GetDefaultSpriteNameFor(CommonsSpriteNames.K45_AutoColorIcon), "K45_ACE_BASICTAB_APPEARANCE_SETTINGS", "RcAppearence");
+            UIPanel m_tabDistricts = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, "ToolbarIconDistrict", "K45_ACE_BASICTAB_DISTRICT_SETTINGS", "RcDistricts");
+            UIPanel m_tabLib = TabCommons.CreateNonScrollableTabLocalized(m_tabstrip, KlyteResourceLoader.GetDefaultSpriteNameFor(CommonsSpriteNames.K45_Load), "K45_ACE_BASICTAB_LIB_SETTINGS", "RcLib");
 
             var helperSettings = new UIHelperExtension(m_tabSettings, LayoutDirection.Vertical);
             var helperAppearence = new UIHelperExtension(m_tabAppearence, LayoutDirection.Vertical);
@@ -81,15 +81,15 @@ namespace Klyte.AssetColorExpander.UI
             var helperLib = new UIHelperExtension(m_tabLib, LayoutDirection.Vertical);
 
 
-            AddTextField(Locale.Get("K45_ACE_BUILDINGRULES_NAME"), out m_name, helperSettings, OnSetName);
+            AddTextField(Locale.Get("K45_ACE_BASICTAB_NAME"), out m_name, helperSettings, OnSetName);
             helperSettings.AddSpace(5);
 
-            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckTypeBuilding)).Select(x => Locale.Get("K45_ACE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
+            AddDropdown(Locale.Get("K45_ACE_BASICTAB_RULEFILTER"), out m_ruleFilter, helperSettings, Enum.GetNames(typeof(RuleCheckTypeBuilding)).Select(x => Locale.Get("K45_ACE_RULECHECKTYPE", x)).ToArray(), OnChangeRuleCheckType);
             AddButtonInEditorRow(m_ruleFilter, CommonsSpriteNames.K45_QuestionMark, Help_RuleFilter);
-            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_SERVICEFILTER"), out m_service, helperSettings, (Enum.GetValues(typeof(ItemClass.Service)) as ItemClass.Service[]).OrderBy(x => (int)x).Select(x => x == 0 ? Locale.Get("K45_ACE_ANYSERVICE_OPTION") : $"{x}").ToArray(), OnChangeServiceFilter);
-            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_SUBSERVICEFILTER"), out m_subService, helperSettings, Enum.GetNames(typeof(ItemClass.SubService)).Select(x => $"{x}").ToArray(), OnChangeSubServiceFilter);
-            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_LEVELFILTER"), out m_level, helperSettings, (Enum.GetValues(typeof(ItemClass.Level)) as ItemClass.Level[]).OrderBy(x => (int)x).Select(x => $"{x}").ToArray(), OnChangeLevelFilter);
-            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_CLASSFILTER"), out m_class, helperSettings, new string[0], OnChangeClassFilter);
+            AddDropdown(Locale.Get("K45_ACE_BASICTAB_SERVICEFILTER"), out m_service, helperSettings, (Enum.GetValues(typeof(ItemClass.Service)) as ItemClass.Service[]).OrderBy(x => (int)x).Select(x => x == 0 ? Locale.Get("K45_ACE_ANYSERVICE_OPTION") : $"{x}").ToArray(), OnChangeServiceFilter);
+            AddDropdown(Locale.Get("K45_ACE_BASICTAB_SUBSERVICEFILTER"), out m_subService, helperSettings, Enum.GetNames(typeof(ItemClass.SubService)).Select(x => $"{x}").ToArray(), OnChangeSubServiceFilter);
+            AddDropdown(Locale.Get("K45_ACE_BASICTAB_LEVELFILTER"), out m_level, helperSettings, (Enum.GetValues(typeof(ItemClass.Level)) as ItemClass.Level[]).OrderBy(x => (int)x).Select(x => $"{x}").ToArray(), OnChangeLevelFilter);
+            AddDropdown(Locale.Get("K45_ACE_BASICTAB_CLASSFILTER"), out m_class, helperSettings, new string[0], OnChangeClassFilter);
             AddTextField(Locale.Get("K45_ACE_BUILDINGRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
@@ -394,9 +394,9 @@ namespace Klyte.AssetColorExpander.UI
 
         private void ApplyRuleCheck(BuildingCityDataRuleXml x)
         {
-            m_service.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE;
-            m_subService.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE;
-            m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL;
+            m_service.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL;
+            m_subService.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL;
+            m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL;
             m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ITEM_CLASS;
             m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ASSET_NAME;
         }
