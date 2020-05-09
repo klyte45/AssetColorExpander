@@ -1,5 +1,4 @@
-﻿using ColossalFramework.Math;
-using Klyte.AssetColorExpander.Data;
+﻿using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.XML;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Utils;
@@ -36,10 +35,12 @@ namespace Klyte.AssetColorExpander
         }
 
         public static Dictionary<string, VehicleAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataVehicles;
-        public static BasicVehicleColorConfigurationXml[][] RulesCache => AssetColorExpanderMod.Controller?.CachedRulesVehicle;
-        public static bool[][] RulesUpdated => AssetColorExpanderMod.Controller?.UpdatedRulesVehicle;
+        public static ref Color?[] ColorCacheParked => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.PARKED_VEHICLE];
+        public static ref Color?[] ColorCache => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.VEHICLE];
+        public static ref bool[] RulesUpdatedParked => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)ACEController.CacheOrder.PARKED_VEHICLE];
+        public static ref bool[] RulesUpdated => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)ACEController.CacheOrder.VEHICLE];
 
-        private static bool PreGetColor_Internal(ushort vehicleId, VehicleInfo info, InfoManager.InfoMode infoMode, ref Color __result, uint randomSeed, bool parked, ushort leadingVehicle)
+        private static bool PreGetColor_Internal(ushort vehicleId, VehicleInfo info, InfoManager.InfoMode infoMode, ref Color __result, ref Color? cacheEntry, ref bool updatedEntry, uint randomSeed, bool parked, ushort leadingVehicle)
         {
 
             if (infoMode != InfoManager.InfoMode.None)
@@ -47,21 +48,29 @@ namespace Klyte.AssetColorExpander
                 LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {vehicleId}/{parked} INFO = {infoMode}");
                 return true;
             }
-            string dataName = info?.name;
-            int idx = parked ? 0 : 1;
-            ref BasicVehicleColorConfigurationXml itemData = ref RulesCache[idx][vehicleId];
-            if (!RulesUpdated[idx][vehicleId])
+            if (updatedEntry)
             {
-                itemData = ACEVehicleConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => parked ? x.Second.AcceptsParked(vehicleId, info) : x.Second.Accepts(vehicleId, info)).OrderBy(x => x.First).FirstOrDefault()?.Second;
-                if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out VehicleAssetFolderRuleXml itemDataAsset))
+                if (cacheEntry == null)
                 {
-                    itemData = itemDataAsset;
+                    return true;
                 }
-                RulesUpdated[idx][vehicleId] = true;
+                __result = cacheEntry ?? Color.clear;
+                return false;
             }
+
+            string dataName = info?.name;
+            BasicVehicleColorConfigurationXml itemData = null;
+            itemData = ACEVehicleConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => parked ? x.Second.AcceptsParked(vehicleId, info) : x.Second.Accepts(vehicleId, info)).OrderBy(x => x.First).FirstOrDefault()?.Second;
+            if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out VehicleAssetFolderRuleXml itemDataAsset))
+            {
+                itemData = itemDataAsset;
+            }
+
             if (itemData == null || itemData.ColoringMode == ColoringMode.SKIP)
             {
                 LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {vehicleId} - {itemData?.ColoringMode} / not found");
+                updatedEntry = true;
+                cacheEntry = null;
                 return true;
             }
             if (!parked && leadingVehicle != 0 && !itemData.AllowDifferentColorsOnWagons)
@@ -69,46 +78,19 @@ namespace Klyte.AssetColorExpander
                 ushort firstVeh = VehicleManager.instance.m_vehicles.m_buffer[vehicleId].GetFirstVehicle(vehicleId);
                 ref Vehicle firstVehData = ref VehicleManager.instance.m_vehicles.m_buffer[firstVeh];
                 __result = firstVehData.Info.m_vehicleAI.GetColor(firstVeh, ref firstVehData, infoMode);
+
+                updatedEntry = true;
+                cacheEntry = __result;
                 return false;
             }
 
             LogUtils.DoLog($"GETTING COLOR FOR VEHICLE: {vehicleId}");
-            float multiplier;
-            switch (itemData.ColoringMode)
-            {
-                case ColoringMode.PASTEL_FULL_VIVID:
-                    multiplier = 1.3f;
-                    goto CASE_ORIG;
-                case ColoringMode.PASTEL_HIGHER_SATURATION:
-                    multiplier = 1.1f;
-                    goto CASE_ORIG;
-                case ColoringMode.PASTEL_ORIG:
-                    multiplier = 1f;
-                CASE_ORIG:
-                    __result = new RandomPastelColorGenerator(randomSeed, multiplier, itemData.PastelConfig).GetNext();
-                    LogUtils.DoLog($"GETTING PASTEL COLOR: {__result}");
-                    return false;
-
-                case ColoringMode.LIST:
-                    if (itemData.m_colorList.Count == 0)
-                    {
-                        LogUtils.DoLog($"NO COLOR AVAILABLE!");
-                        return true;
-                    }
-                    var randomizer = new Randomizer(randomSeed);
-
-                    __result = itemData.m_colorList[randomizer.Int32((uint)itemData.m_colorList.Count)];
-                    LogUtils.DoLog($"GETTING LIST COLOR: {__result}");
-                    return false;
-                default:
-                    LogUtils.DoLog($"GETTING DEFAULT COLOR!");
-                    return true;
-            }
+            return ACEColorGenUtils.GetColor(randomSeed, ref __result, itemData, ref cacheEntry, ref updatedEntry);
         }
-        public static bool PreGetColor(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, vehicleID, false, 0);
-        public static bool PreGetColorParked(ushort parkedVehicleID, ref VehicleParked data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(parkedVehicleID, data.Info, infoMode, ref __result, parkedVehicleID, false, 0);
-        public static bool PreGetColorPassengerCar(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, data.m_transferSize, false, 0);
-        public static bool PreGetColorPassengerCarParked(ushort parkedVehicleID, ref VehicleParked data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(parkedVehicleID, data.Info, infoMode, ref __result, data.m_ownerCitizen & 65535u, false, 0);
+        public static bool PreGetColor(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, ref ColorCache[vehicleID], ref RulesUpdated[vehicleID], vehicleID, false, 0);
+        public static bool PreGetColorParked(ushort parkedVehicleID, ref VehicleParked data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(parkedVehicleID, data.Info, infoMode, ref __result, ref ColorCacheParked[parkedVehicleID], ref RulesUpdatedParked[parkedVehicleID], parkedVehicleID, true, 0);
+        public static bool PreGetColorPassengerCar(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, ref ColorCache[vehicleID], ref RulesUpdated[vehicleID], data.m_transferSize, false, 0);
+        public static bool PreGetColorPassengerCarParked(ushort parkedVehicleID, ref VehicleParked data, InfoManager.InfoMode infoMode, ref Color __result) => PreGetColor_Internal(parkedVehicleID, data.Info, infoMode, ref __result, ref ColorCacheParked[parkedVehicleID], ref RulesUpdatedParked[parkedVehicleID], data.m_ownerCitizen & 65535u, true, 0);
         public static bool PreGetColorPassengerLineVehicle(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result)
         {
             if (data.m_leadingVehicle != 0)
@@ -125,7 +107,7 @@ namespace Klyte.AssetColorExpander
                 return true;
             }
 
-            return PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, vehicleID, false, data.m_leadingVehicle);
+            return PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, ref ColorCache[vehicleID], ref RulesUpdated[vehicleID], vehicleID, false, data.m_leadingVehicle);
         }
         public static bool PreGetColorSourceBuilding(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result)
         {
@@ -134,16 +116,10 @@ namespace Klyte.AssetColorExpander
                 return true;
             }
 
-            return PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, vehicleID, false, 0);
+            return PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, ref ColorCache[vehicleID], ref RulesUpdated[vehicleID], vehicleID, false, 0);
         }
 
-        public static void AfterReleaseParkedVehicle(ushort parked)
-        {
-            RulesUpdated[0][parked] = false;
-        }
-        public static void AfterReleaseVehicle(ushort vehicle)
-        {
-            RulesUpdated[1][vehicle] = false;
-        }
+        public static void AfterReleaseParkedVehicle(ushort parked) => RulesUpdatedParked[parked] = false;
+        public static void AfterReleaseVehicle(ushort vehicle) => RulesUpdated[vehicle] = false;
     }
 }

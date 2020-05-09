@@ -70,6 +70,7 @@
     <Compile Include="Libraries\ACEVehcileRuleLib.cs" />
     <Compile Include="Libraries\ACEVehicleRulesetLib.cs" />
     <Compile Include="Overrides\ACECitizenOverrides.cs" />
+    <Compile Include="Overrides\ACEColorGenUtils.cs" />
     <Compile Include="Overrides\ACEVehicleOverrides.cs" />
     <Compile Include="Overrides\ACEBuildingOverrides.cs" />
     <Compile Include="commons\Interfaces\ILibableAsContainer.cs" />
@@ -196,7 +197,7 @@
     <Compile Include="XML\ColoringMode.cs" />
     <Compile Include="XML\Building\RuleCheckTypeBuilding.cs" />
     <Compile Include="XML\Vehicle\BasicColorConfigurationXml.cs" />
-    <Compile Include="XML\Vehicle\BuildingCityDataRuleXml.cs" />
+    <Compile Include="XML\Vehicle\VehicleCityDataRuleXml.cs" />
     <Compile Include="XML\Vehicle\RuleCheckTypeVehicle.cs" />
     <Compile Include="XML\Vehicle\VehicleAssetFolderRulesXml.cs" />
   </ItemGroup>

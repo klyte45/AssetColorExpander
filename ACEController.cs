@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using UnityEngine;
 
 namespace Klyte.AssetColorExpander
 {
@@ -23,26 +24,29 @@ namespace Klyte.AssetColorExpander
         internal readonly Dictionary<string, BuildingAssetFolderRuleXml> m_colorConfigDataBuildings = new Dictionary<string, BuildingAssetFolderRuleXml>();
         internal readonly Dictionary<string, VehicleAssetFolderRuleXml> m_colorConfigDataVehicles = new Dictionary<string, VehicleAssetFolderRuleXml>();
 
-        public BasicColorConfigurationXml[] CachedRulesBuilding { get; private set; } = new BasicColorConfigurationXml[BuildingManager.MAX_BUILDING_COUNT];
-        public BasicVehicleColorConfigurationXml[][] CachedRulesVehicle { get; private set; } = new BasicVehicleColorConfigurationXml[][] {
-            new BasicVehicleColorConfigurationXml[VehicleManager.MAX_VEHICLE_COUNT],
-            new BasicVehicleColorConfigurationXml[VehicleManager.MAX_PARKED_COUNT]
-        };
-        public BasicColorConfigurationXml[] CachedRulesCitizen { get; private set; } = new BasicColorConfigurationXml[CitizenManager.MAX_INSTANCE_COUNT];
+        public Color?[][] CachedColor { get; private set; } = new Color?[Enum.GetValues(typeof(CacheOrder)).Length][];
 
-        public bool[] UpdatedRulesBuilding { get; private set; } = new bool[BuildingManager.MAX_BUILDING_COUNT];
-        public bool[][] UpdatedRulesVehicle { get; private set; } = new bool[][] {
-            new bool[VehicleManager.MAX_VEHICLE_COUNT],
-            new bool[VehicleManager.MAX_PARKED_COUNT]
-        };
-        public bool[] UpdatedRulesCitizen { get; private set; } = new bool[CitizenManager.MAX_INSTANCE_COUNT];
+        public bool[][] UpdatedRules { get; private set; } = new bool[Enum.GetValues(typeof(CacheOrder)).Length][];
+
+        public enum CacheOrder
+        {
+            BUILDING,
+            VEHICLE,
+            PARKED_VEHICLE,
+            CITIZEN,
+            PROP
+        }
 
         public Dictionary<ItemClass, List<BuildingInfo>> AllClassesBuilding { get; private set; }
         public Dictionary<ItemClass, List<VehicleInfo>> AllClassesVehicle { get; private set; }
         public Dictionary<ItemClass, List<CitizenInfo>> AllClassesCitizen { get; private set; }
         public Dictionary<Type, List<CitizenInfo>> AllAICitizen { get; private set; }
 
-        protected override void StartActions() => ReloadFiles();
+        protected override void StartActions()
+        {
+            ReloadFiles();
+            CleanCache();
+        }
 
         protected void Awake()
         {
@@ -133,15 +137,23 @@ namespace Klyte.AssetColorExpander
         }
         public void CleanCacheVehicle()
         {
-            UpdatedRulesVehicle = new bool[][]
-            {
-              new bool  [VehicleManager.MAX_VEHICLE_COUNT],
-              new bool  [VehicleManager.MAX_PARKED_COUNT]
-            };
+            UpdatedRules[(int)CacheOrder.VEHICLE] = new bool[VehicleManager.MAX_VEHICLE_COUNT];
+            UpdatedRules[(int)CacheOrder.PARKED_VEHICLE] = new bool[VehicleManager.MAX_PARKED_COUNT];
+            CachedColor[(int)CacheOrder.VEHICLE] = new Color?[VehicleManager.MAX_VEHICLE_COUNT];
+            CachedColor[(int)CacheOrder.PARKED_VEHICLE] = new Color?[VehicleManager.MAX_PARKED_COUNT];
         }
 
-        public void CleanCacheBuilding() => UpdatedRulesBuilding = new bool[BuildingManager.MAX_BUILDING_COUNT];
-        public void CleanCacheCitizen() => UpdatedRulesCitizen = new bool[CitizenManager.MAX_INSTANCE_COUNT];
+        public void CleanCacheBuilding()
+        {
+            UpdatedRules[(int)CacheOrder.BUILDING] = new bool[BuildingManager.MAX_BUILDING_COUNT];
+            CachedColor[(int)CacheOrder.BUILDING] = new Color?[BuildingManager.MAX_BUILDING_COUNT];
+        }
+
+        public void CleanCacheCitizen()
+        {
+            UpdatedRules[(int)CacheOrder.CITIZEN] = new bool[CitizenManager.MAX_INSTANCE_COUNT];
+            CachedColor[(int)CacheOrder.CITIZEN] = new Color?[CitizenManager.MAX_INSTANCE_COUNT];
+        }
 
         public void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders<BuildingInfo>($"{DEFAULT_XML_NAME_BUILDING}.xml", LoadDescriptorsFromXml);
 

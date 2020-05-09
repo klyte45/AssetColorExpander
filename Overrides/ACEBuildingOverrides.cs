@@ -1,5 +1,4 @@
-﻿using ColossalFramework.Math;
-using Klyte.AssetColorExpander.Data;
+﻿using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.XML;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Utils;
@@ -19,8 +18,8 @@ namespace Klyte.AssetColorExpander
         }
 
         public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataBuildings;
-        public static BasicColorConfigurationXml[] RulesCache => AssetColorExpanderMod.Controller?.CachedRulesBuilding;
-        public static bool[] RulesUpdated => AssetColorExpanderMod.Controller?.UpdatedRulesBuilding;
+        public static ref Color?[] ColorCache => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING];
+        public static ref bool[] RulesUpdated => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)ACEController.CacheOrder.BUILDING];
 
         public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result)
         {
@@ -30,58 +29,38 @@ namespace Klyte.AssetColorExpander
                 LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} INFO = {infoMode}");
                 return true;
             }
-            string dataName = data.Info?.name;
-            ref BasicColorConfigurationXml itemData = ref RulesCache[buildingID];
-            if (!RulesUpdated[buildingID])
+            if (RulesUpdated[buildingID])
             {
-                BuildingInfo info = data.Info;
-                byte district = DistrictManager.instance.GetDistrict(data.m_position);
-                byte park = DistrictManager.instance.GetPark(data.m_position);
-                itemData = ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
-                if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out BuildingAssetFolderRuleXml itemDataAsset))
+                if (ColorCache[buildingID] == null)
                 {
-                    itemData = itemDataAsset;
+                    return true;
                 }
-                RulesUpdated[buildingID] = true;
+                __result = ColorCache[buildingID] ?? Color.clear;
+                return false;
             }
+
+            string dataName = data.Info?.name;
+            BasicColorConfigurationXml itemData;
+
+            BuildingInfo info = data.Info;
+            byte district = DistrictManager.instance.GetDistrict(data.m_position);
+            byte park = DistrictManager.instance.GetPark(data.m_position);
+            itemData = ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
+            if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out BuildingAssetFolderRuleXml itemDataAsset))
+            {
+                itemData = itemDataAsset;
+            }
+            RulesUpdated[buildingID] = true;
+
             if (itemData == null || itemData.ColoringMode == ColoringMode.SKIP)
             {
                 LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} - {itemData?.ColoringMode} not found");
+                ColorCache[buildingID] = null;
+                RulesUpdated[buildingID] = true;
                 return true;
             }
             LogUtils.DoLog($"GETTING COLOR FOR BUILDING: {buildingID}");
-            float multiplier;
-            switch (itemData.ColoringMode)
-            {
-
-                case ColoringMode.PASTEL_FULL_VIVID:
-                    multiplier = 1.3f;
-                    goto CASE_ORIG;
-                case ColoringMode.PASTEL_HIGHER_SATURATION:
-                    multiplier = 1.1f;
-                    goto CASE_ORIG;
-                case ColoringMode.PASTEL_ORIG:
-                    multiplier = 1f;
-                CASE_ORIG:
-                    __result = new RandomPastelColorGenerator(buildingID, multiplier, itemData.PastelConfig).GetNext();
-                    LogUtils.DoLog($"GETTING PASTEL COLOR: {__result}");
-                    return false;
-
-                case ColoringMode.LIST:
-                    if (itemData.m_colorList.Count == 0)
-                    {
-                        LogUtils.DoLog($"NO COLOR AVAILABLE!");
-                        return true;
-                    }
-                    var randomizer = new Randomizer(buildingID);
-
-                    __result = itemData.m_colorList[randomizer.Int32((uint)itemData.m_colorList.Count)];
-                    LogUtils.DoLog($"GETTING LIST COLOR: {__result}");
-                    return false;
-                default:
-                    LogUtils.DoLog($"GETTING DEFAULT COLOR!");
-                    return true;
-            }
+            return ACEColorGenUtils.GetColor(buildingID, ref __result, itemData, ref ColorCache[buildingID], ref RulesUpdated[buildingID]);
         }
 
         public static void AfterReleaseBuilding(ushort building) => RulesUpdated[building] = false;
