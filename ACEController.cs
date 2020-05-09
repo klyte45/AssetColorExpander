@@ -1,8 +1,11 @@
-﻿using Klyte.AssetColorExpander.XML;
+﻿using ColossalFramework;
+using ColossalFramework.Globalization;
+using Klyte.AssetColorExpander.XML;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Interfaces;
 using Klyte.Commons.Utils;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
@@ -18,16 +21,34 @@ namespace Klyte.AssetColorExpander
 
         internal readonly Dictionary<string, BuildingAssetFolderRuleXml> m_colorConfigDataBuildings = new Dictionary<string, BuildingAssetFolderRuleXml>();
         internal readonly Dictionary<string, VehicleAssetFolderRuleXml> m_colorConfigDataVehicles = new Dictionary<string, VehicleAssetFolderRuleXml>();
-        public readonly Dictionary<ushort, BasicColorConfigurationXml> m_cachedRulesBuilding = new Dictionary<ushort, BasicColorConfigurationXml>();
-        public readonly Dictionary<ushort, BasicColorConfigurationXml> m_cachedRulesVehicle = new Dictionary<ushort, BasicColorConfigurationXml>();
+
+        public BasicColorConfigurationXml[] CachedRulesBuilding { get; private set; } = new BasicColorConfigurationXml[BuildingManager.MAX_BUILDING_COUNT];
+        public BasicVehicleColorConfigurationXml[][] CachedRulesVehicle { get; private set; } = new BasicVehicleColorConfigurationXml[][] {
+            new BasicVehicleColorConfigurationXml[VehicleManager.MAX_VEHICLE_COUNT],
+            new BasicVehicleColorConfigurationXml[VehicleManager.MAX_PARKED_COUNT]
+        };
+
+        public bool[] UpdatedRulesBuilding { get; private set; } = new bool[BuildingManager.MAX_BUILDING_COUNT];
+        public bool[][] UpdatedRulesVehicle { get; private set; } = new bool[][] {
+            new bool[VehicleManager.MAX_VEHICLE_COUNT],
+            new bool[VehicleManager.MAX_PARKED_COUNT]
+        };
 
         public Dictionary<ItemClass, List<BuildingInfo>> AllClassesBuilding { get; private set; }
+        public Dictionary<ItemClass, List<VehicleInfo>> AllClassesVehicle { get; private set; }
 
         protected override void StartActions() => ReloadFiles();
 
         protected void Awake()
         {
             AllClassesBuilding = ((FastList<PrefabCollection<BuildingInfo>.PrefabData>)typeof(PrefabCollection<BuildingInfo>).GetField("m_scenePrefabs", RedirectorUtils.allFlags).GetValue(null))
+              .m_buffer
+              .Select(x => x.m_prefab)
+              .Where(x => x?.m_class != null)
+              .GroupBy(x => x.m_class.name)
+              .ToDictionary(x => x.First().m_class, x => x.ToList());
+
+            AllClassesVehicle = ((FastList<PrefabCollection<VehicleInfo>.PrefabData>)typeof(PrefabCollection<VehicleInfo>).GetField("m_scenePrefabs", RedirectorUtils.allFlags).GetValue(null))
               .m_buffer
               .Select(x => x.m_prefab)
               .Where(x => x?.m_class != null)
@@ -85,9 +106,19 @@ namespace Klyte.AssetColorExpander
 
         public void CleanCache()
         {
-            m_cachedRulesBuilding.Clear();
-            m_cachedRulesVehicle.Clear();
+            CleanCacheVehicle();
+            CleanCacheBuilding();
         }
+        public void CleanCacheVehicle()
+        {
+            UpdatedRulesVehicle = new bool[][]
+            {
+              new bool  [VehicleManager.MAX_VEHICLE_COUNT],
+              new bool  [VehicleManager.MAX_PARKED_COUNT]
+            };
+        }
+
+        public void CleanCacheBuilding() => UpdatedRulesBuilding = new bool[BuildingManager.MAX_BUILDING_COUNT];
 
         public void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders<BuildingInfo>($"{DEFAULT_XML_NAME_BUILDING}.xml", LoadDescriptorsFromXml);
 
@@ -106,6 +137,65 @@ namespace Klyte.AssetColorExpander
                 }
             }
         }
+
+        #region Prefab loading
+
+        private Dictionary<string, string> m_vehiclesLoaded, m_buildingsLoaded;
+
+        public Dictionary<string, string> VehiclesLoaded
+        {
+            get {
+                if (m_vehiclesLoaded == null)
+                {
+                    m_vehiclesLoaded = GetInfos<VehicleInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
+                }
+                return m_vehiclesLoaded;
+            }
+        }
+
+        public Dictionary<string, string> BuildingsLoaded
+        {
+            get {
+                if (m_buildingsLoaded == null)
+                {
+                    m_buildingsLoaded = GetInfos<BuildingInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
+                }
+                return m_buildingsLoaded;
+            }
+        }
+
+
+        private static string GetListName(PrefabInfo x) => (x?.name?.EndsWith("_Data") ?? false) ? $"{x?.GetLocalizedTitle()}" : x?.name ?? "";
+        private List<T> GetInfos<T>() where T : PrefabInfo
+        {
+            var list = new List<T>();
+            uint num = 0u;
+            while (num < (ulong)PrefabCollection<T>.LoadedCount())
+            {
+                T prefabInfo = PrefabCollection<T>.GetLoaded(num);
+                if (prefabInfo != null)
+                {
+                    list.Add(prefabInfo);
+                }
+                num += 1u;
+            }
+            return list;
+        }
+
+        public string[] FilterVehiclesByText(string text) => VehiclesLoaded
+            .ToList()
+            .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
+            .Select(x => x.Key)
+            .OrderBy((x) => x)
+            .ToArray();
+
+        public string[] FilterBuildingByText(string text) => BuildingsLoaded
+            .ToList()
+            .Where((x) => text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), text, CompareOptions.IgnoreCase) >= 0)
+            .Select(x => x.Key)
+            .OrderBy((x) => x)
+            .ToArray();
+        #endregion
 
     }
 }

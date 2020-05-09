@@ -9,7 +9,6 @@ using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using static Klyte.Commons.UI.DefaultEditorUILib;
@@ -17,7 +16,7 @@ using static Klyte.Commons.UI.DefaultEditorUILib;
 namespace Klyte.AssetColorExpander.UI
 {
 
-    internal class ACEBuildingRuleEditor : UICustomControl
+    public class ACEBuildingRuleEditor : UICustomControl
     {
         public UIPanel MainContainer { get; protected set; }
 
@@ -94,19 +93,19 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_BUILDINGRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
-            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, FilterBuildingByText, OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.FilterBuildingByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
             m_popup.height = 290;
             m_popup.width -= 20;
 
             AddLibBox<ACEBuildingRuleLib, BuildingCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
-            AddDropdown(Locale.Get("K45_ACE_BUILDINGRULES_COLORMODE"), out m_colorMode, helperAppearence, Enum.GetNames(typeof(ColoringMode)).Select(x => Locale.Get("K45_ACE_COLORINGMODE", x)).ToArray(), OnChangeColoringMode);
+            AddDropdown(Locale.Get("K45_ACE_COLORMODE"), out m_colorMode, helperAppearence, Enum.GetNames(typeof(ColoringMode)).Select(x => Locale.Get("K45_ACE_COLORINGMODE", x)).ToArray(), OnChangeColoringMode);
             AddButtonInEditorRow(m_colorMode, CommonsSpriteNames.K45_QuestionMark, Help_ColorMode);
 
-            AddCheckboxLocale("K45_ACE_BUILDINGRULES_ALLOWREDTONES", out m_allowRed, helperAppearence, OnAllowRedChanged);
-            AddCheckboxLocale("K45_ACE_BUILDINGRULES_ALLOWGREENTONES", out m_allowGreen, helperAppearence, OnAllowGreenChanged);
-            AddCheckboxLocale("K45_ACE_BUILDINGRULES_ALLOWBLUETONES", out m_allowBlues, helperAppearence, OnAllowBlueChanged);
-            AddCheckboxLocale("K45_ACE_BUILDINGRULES_ALLOWNEUTRALTONES", out m_allowNeutral, helperAppearence, OnAllowNeutralChanged);
+            AddCheckboxLocale("K45_ACE_COLORMODE_ALLOWREDTONES", out m_allowRed, helperAppearence, OnAllowRedChanged);
+            AddCheckboxLocale("K45_ACE_COLORMODE_ALLOWGREENTONES", out m_allowGreen, helperAppearence, OnAllowGreenChanged);
+            AddCheckboxLocale("K45_ACE_COLORMODE_ALLOWBLUETONES", out m_allowBlues, helperAppearence, OnAllowBlueChanged);
+            AddCheckboxLocale("K45_ACE_COLORMODE_ALLOWNEUTRALTONES", out m_allowNeutral, helperAppearence, OnAllowNeutralChanged);
 
 
             KlyteMonoUtils.CreateUIElement(out m_listColorContainer, helperAppearence.Self.transform, "listColors", new UnityEngine.Vector4(0, 0, helperAppearence.Self.width, helperAppearence.Self.height - 80));
@@ -154,40 +153,6 @@ namespace Klyte.AssetColorExpander.UI
         }
 
         #region Prefab handling
-        public Dictionary<string, string> BuildingsLoaded
-        {
-            get {
-                if (m_buildingsLoaded == null)
-                {
-                    m_buildingsLoaded = GetInfos<BuildingInfo>().Where(x => x != null).ToDictionary(x => GetListName(x), x => x?.name);
-                }
-                return m_buildingsLoaded;
-            }
-        }
-        private static string GetListName(PrefabInfo x) => (x?.name?.EndsWith("_Data") ?? false) ? $"{x?.GetLocalizedTitle()}" : x?.name ?? "";
-        private List<T> GetInfos<T>() where T : PrefabInfo
-        {
-            var list = new List<T>();
-            uint num = 0u;
-            while (num < (ulong)PrefabCollection<T>.LoadedCount())
-            {
-                T prefabInfo = PrefabCollection<T>.GetLoaded(num);
-                if (prefabInfo != null)
-                {
-                    list.Add(prefabInfo);
-                }
-                num += 1u;
-            }
-            return list;
-        }
-
-        private string[] FilterBuildingByText() => BuildingsLoaded
-            .ToList()
-            .Where((x) => m_assetFilter.text.IsNullOrWhiteSpace() ? true : LocaleManager.cultureInfo.CompareInfo.IndexOf(x.Value + (PrefabUtils.instance.AuthorList.TryGetValue(x.Value.Split('.')[0], out string author) ? "\n" + author : ""), m_assetFilter.text, CompareOptions.IgnoreCase) >= 0)
-            .Select(x => x.Key)
-            .OrderBy((x) => x)
-            .ToArray();
-
         private string GetCurrentSelectionName()
         {
             string name = "";
@@ -369,7 +334,7 @@ namespace Klyte.AssetColorExpander.UI
             if (effTargetTab < ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Length)
             {
                 action(ref ACEBuildingConfigRulesData.Instance.Rules.m_dataArray[effTargetTab]);
-                AssetColorExpanderMod.Controller.CleanCache();
+                AssetColorExpanderMod.Controller.CleanCacheBuilding();
                 BuildingManager.instance.UpdateBuildingColors();
             }
         }
@@ -398,8 +363,9 @@ namespace Klyte.AssetColorExpander.UI
                 m_class.selectedValue = x.ItemClassName;
 
                 string targetAsset = x.AssetName ?? "";
-                m_lastSelection = GetInfos<BuildingInfo>().Where(y => y.name == targetAsset).FirstOrDefault();
-                m_assetFilter.text = GetListName(m_lastSelection);
+                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                m_assetFilter.text = entry?.Key ?? "";
+                m_lastSelection = PrefabCollection<BuildingInfo>.FindLoaded(entry?.Value ?? "");
 
                 ApplyRuleCheck(x);
 
@@ -497,8 +463,18 @@ namespace Klyte.AssetColorExpander.UI
 
         private void OnAssetSelectedChanged(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {
-            BuildingInfo k = (sel < 0 ? null : m_lastSelection = GetInfos<BuildingInfo>().Where(x => x.name == BuildingsLoaded[m_popup.items[sel]]).FirstOrDefault());
-            x.AssetName = k.name;
+            if (sel >= 0 && AssetColorExpanderMod.Controller.BuildingsLoaded.TryGetValue(m_popup.items[sel], out string assetName))
+            {
+                x.AssetName = assetName;
+                m_lastSelection = PrefabCollection<BuildingInfo>.FindLoaded(assetName);
+                m_assetFilter.text = m_popup.items[sel];
+            }
+            else
+            {
+                string targetAsset = x.AssetName ?? "";
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                m_assetFilter.text = entry?.Key ?? "";
+            }
         });
         private void OnChangeClassFilter(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {

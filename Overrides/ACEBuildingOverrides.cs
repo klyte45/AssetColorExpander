@@ -14,7 +14,8 @@ namespace Klyte.AssetColorExpander
         public void Awake() => AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(ACEBuildingOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
 
         public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataBuildings;
-        public static Dictionary<ushort, BasicColorConfigurationXml> RulesCache => AssetColorExpanderMod.Controller?.m_cachedRulesBuilding;
+        public static BasicColorConfigurationXml[] RulesCache => AssetColorExpanderMod.Controller?.CachedRulesBuilding;
+        public static bool[] RulesUpdated => AssetColorExpanderMod.Controller?.UpdatedRulesBuilding;
 
         public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result)
         {
@@ -25,7 +26,8 @@ namespace Klyte.AssetColorExpander
                 return true;
             }
             string dataName = data.Info?.name;
-            if (!RulesCache.TryGetValue(buildingID, out BasicColorConfigurationXml itemData))
+            ref BasicColorConfigurationXml itemData = ref RulesCache[buildingID];
+            if (!RulesUpdated[buildingID])
             {
                 BuildingInfo info = data.Info;
                 byte district = DistrictManager.instance.GetDistrict(data.m_position);
@@ -35,7 +37,7 @@ namespace Klyte.AssetColorExpander
                 {
                     itemData = itemDataAsset;
                 }
-                RulesCache[buildingID] = itemData;
+                RulesUpdated[buildingID] = true;
             }
             if (itemData == null)
             {

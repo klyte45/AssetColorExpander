@@ -18,6 +18,6 @@ namespace Klyte.AssetColorExpander.UI
         protected override string LocaleExport => "K45_ACE_BUILDINGRULES_EXPORTRULELIST";
 
         protected override void Help_RulesList() => K45DialogControl.ShowModalHelp("General.RuleList", Locale.Get("K45_ACE_BUILDINGRULES_RULELISTTITLE"),0, ACEBuildingRulesetLib.Instance.DefaultXmlFileBaseFullPath);
-        protected override void OnTabstripFix() => AssetColorExpanderMod.Controller?.CleanCache();
+        protected override void OnTabstripFix() => AssetColorExpanderMod.Controller?.CleanCacheBuilding();
     }
 }

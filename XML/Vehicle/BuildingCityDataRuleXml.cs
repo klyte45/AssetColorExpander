@@ -2,7 +2,7 @@
 
 namespace Klyte.AssetColorExpander.XML
 {
-    public class VehicleCityDataRuleXml : BasicColorConfigurationXml
+    public class VehicleCityDataRuleXml : BasicVehicleColorConfigurationXml
     {
         [XmlAttribute]
         public string ItemClassName { get; set; }
@@ -18,11 +18,11 @@ namespace Klyte.AssetColorExpander.XML
         public string AssetNameBuilding { get; set; }
 
         [XmlAttribute]
-        public RuleCheckTypeVehicle RuleCheckTypeVehicle { get; set; }
+        public RuleCheckTypeVehicle RuleCheckType { get; set; }
 
         internal bool Accepts(ushort vehicleId, VehicleInfo info)
         {
-            switch (RuleCheckTypeVehicle)
+            switch (RuleCheckType)
             {
                 case RuleCheckTypeVehicle.ITEM_CLASS:
                     return info.m_class.name == ItemClassName;
@@ -45,7 +45,7 @@ namespace Klyte.AssetColorExpander.XML
         }
         internal bool AcceptsParked(ushort vehicleId, VehicleInfo info)
         {
-            switch (RuleCheckTypeVehicle)
+            switch (RuleCheckType)
             {
                 case RuleCheckTypeVehicle.ITEM_CLASS:
                     return info.m_class.name == ItemClassName;

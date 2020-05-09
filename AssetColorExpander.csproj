@@ -64,12 +64,16 @@
     <Compile Include="commons\Utils\PrefabUtils.cs" />
     <Compile Include="commons\Utils\UITemplateUtils.cs" />
     <Compile Include="Data\ACEVehicleConfigRulesData.cs" />
+    <Compile Include="Libraries\ACEVehcileRuleLib.cs" />
+    <Compile Include="Libraries\ACEVehicleRulesetLib.cs" />
     <Compile Include="Overrides\ACEVehicleOverrides.cs" />
     <Compile Include="Overrides\ACEBuildingOverrides.cs" />
     <Compile Include="commons\Interfaces\ILibableAsContainer.cs" />
     <Compile Include="Data\ACEBuildingConfigRulesData.cs" />
     <Compile Include="Libraries\ACEBuildingRuleLib.cs" />
     <Compile Include="Libraries\ACEBuildingRulesetLib.cs" />
+    <Compile Include="UI\ACEBasicController.cs" />
+    <Compile Include="UI\Tabs\Building\ACEBuildingController.cs" />
     <Compile Include="UI\ACEPanel.cs" />
     <Compile Include="CommonProperties.cs" />
     <Compile Include="AssetColorExpanderMod.cs" />
@@ -167,10 +171,13 @@
     <Compile Include="commons\Utils\VehicleUtils.cs" />
     <Compile Include="commons\Utils\XmlUtils.cs" />
     <Compile Include="commons\Utils\ZipUtils.cs" />
-    <Compile Include="UI\ACEBuildingRulesList.cs" />
-    <Compile Include="UI\ACEBuildingRuleEditor.cs" />
+    <Compile Include="UI\Tabs\Building\ACEBuildingRulesList.cs" />
+    <Compile Include="UI\Tabs\Building\ACEBuildingRuleEditor.cs" />
     <Compile Include="commons\UI\BasicRulesList.cs" />
     <Compile Include="commons\UI\DefaultEditorUILib.cs" />
+    <Compile Include="UI\Tabs\Vehicle\ACEBuildingController.cs" />
+    <Compile Include="UI\Tabs\Vehicle\ACEVehicleRuleEditor.cs" />
+    <Compile Include="UI\Tabs\Vehicle\ACEVehicleRulesList.cs" />
     <Compile Include="XML\Building\BuildingAssetFolderRulesXml.cs" />
     <Compile Include="XML\ACERulesetContainer.cs" />
     <Compile Include="XML\Building\BuildingCityDataRuleXml.cs" />
@@ -178,8 +185,9 @@
     <Compile Include="XML\BasicColorConfigurationXml.cs" />
     <Compile Include="XML\ColoringMode.cs" />
     <Compile Include="XML\Building\RuleCheckTypeBuilding.cs" />
+    <Compile Include="XML\Vehicle\BasicColorConfigurationXml.cs" />
     <Compile Include="XML\Vehicle\BuildingCityDataRuleXml.cs" />
-    <Compile Include="XML\Vehicle\RuleCheckTypeBuilding.cs" />
+    <Compile Include="XML\Vehicle\RuleCheckTypeVehicle.cs" />
     <Compile Include="XML\Vehicle\VehicleAssetFolderRulesXml.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -199,11 +207,13 @@
     <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Lib.Harmony.1.2.0.1\lib\net35\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>S:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>S:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="ColossalManaged">
       <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
