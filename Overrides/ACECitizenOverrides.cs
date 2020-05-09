@@ -10,7 +10,11 @@ namespace Klyte.AssetColorExpander
 {
     public class ACECitizenOverrides : Redirector, IRedirectable
     {
-        public void Awake() => AddRedirect(typeof(CitizenAI).GetMethod("GetColor"), typeof(ACECitizenOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+        public void Awake()
+        {
+            AddRedirect(typeof(CitizenAI).GetMethod("GetColor"), typeof(ACECitizenOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+            AddRedirect(typeof(CitizenManager).GetMethod("ReleaseCitizenInstance"), null, typeof(ACECitizenOverrides).GetMethod("AfterReleaseCitizenInstance", RedirectorUtils.allFlags));
+        }
 
         public static BasicColorConfigurationXml[] RulesCache => AssetColorExpanderMod.Controller?.CachedRulesCitizen;
         public static bool[] RulesUpdated => AssetColorExpanderMod.Controller?.UpdatedRulesCitizen;
@@ -71,5 +75,7 @@ namespace Klyte.AssetColorExpander
                     return true;
             }
         }
+
+        public static void AfterReleaseCitizenInstance(ushort instance) => RulesUpdated[instance] = false;
     }
 }

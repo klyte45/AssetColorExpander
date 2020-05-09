@@ -11,7 +11,12 @@ namespace Klyte.AssetColorExpander
 {
     public class ACEBuildingOverrides : Redirector, IRedirectable
     {
-        public void Awake() => AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(ACEBuildingOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+        public void Awake()
+        {
+            AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(ACEBuildingOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+
+            AddRedirect(typeof(BuildingManager).GetMethod("ReleaseBuilding"), null, typeof(ACEBuildingOverrides).GetMethod("AfterReleaseBuilding", RedirectorUtils.allFlags));
+        }
 
         public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataBuildings;
         public static BasicColorConfigurationXml[] RulesCache => AssetColorExpanderMod.Controller?.CachedRulesBuilding;
@@ -78,5 +83,7 @@ namespace Klyte.AssetColorExpander
                     return true;
             }
         }
+
+        public static void AfterReleaseBuilding(ushort building) => RulesUpdated[building] = false;
     }
 }

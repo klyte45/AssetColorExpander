@@ -29,6 +29,10 @@ namespace Klyte.AssetColorExpander
             AddRedirect(typeof(TramAI).GetMethod("GetColor", RedirectorUtils.allFlags, null, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) }, null), GetType().GetMethod("PreGetColorPassengerLineVehicle", RedirectorUtils.allFlags));
             AddRedirect(typeof(TrolleybusAI).GetMethod("GetColor", RedirectorUtils.allFlags, null, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) }, null), GetType().GetMethod("PreGetColorPassengerLineVehicle", RedirectorUtils.allFlags));
             AddRedirect(typeof(RocketAI).GetMethod("GetColor", RedirectorUtils.allFlags, null, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) }, null), GetType().GetMethod("PreGetColorSourceBuilding", RedirectorUtils.allFlags));
+
+
+            AddRedirect(typeof(VehicleManager).GetMethod("ReleaseParkedVehicle"), null, typeof(ACEVehicleOverrides).GetMethod("AfterReleaseParkedVehicle", RedirectorUtils.allFlags));
+            AddRedirect(typeof(VehicleManager).GetMethod("ReleaseVehicle"), null, typeof(ACEVehicleOverrides).GetMethod("AfterReleaseVehicle", RedirectorUtils.allFlags));
         }
 
         public static Dictionary<string, VehicleAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataVehicles;
@@ -131,6 +135,15 @@ namespace Klyte.AssetColorExpander
             }
 
             return PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, vehicleID, false, 0);
+        }
+
+        public static void AfterReleaseParkedVehicle(ushort parked)
+        {
+            RulesUpdated[0][parked] = false;
+        }
+        public static void AfterReleaseVehicle(ushort vehicle)
+        {
+            RulesUpdated[1][vehicle] = false;
         }
     }
 }
