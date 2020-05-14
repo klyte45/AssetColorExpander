@@ -82,7 +82,7 @@
     <Compile Include="Data\ACEBuildingConfigRulesData.cs" />
     <Compile Include="Libraries\ACEBuildingRuleLib.cs" />
     <Compile Include="Libraries\ACEBuildingRulesetLib.cs" />
-    <Compile Include="UI\ACEBasicController.cs" />
+    <Compile Include="UI\ACEBasicUIController.cs" />
     <Compile Include="UI\Tabs\Building\ACEBuildingController.cs" />
     <Compile Include="UI\ACEPanel.cs" />
     <Compile Include="CommonProperties.cs" />

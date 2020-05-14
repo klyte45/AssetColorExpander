@@ -3,6 +3,6 @@ using Klyte.AssetColorExpander.XML;
 
 namespace Klyte.AssetColorExpander.UI
 {
-    public class ACECitizenController : ACEBasicController<ACECitizenRuleEditor, ACECitizenRulesList, CitizenCityDataRuleXml, ACECitizenRulesetLib, ACERulesetContainer<CitizenCityDataRuleXml>> { }
+    public class ACECitizenController : ACEBasicUIController<ACECitizenRuleEditor, ACECitizenRulesList, CitizenCityDataRuleXml, ACECitizenRulesetLib, ACERulesetContainer<CitizenCityDataRuleXml>> { }
 
 }

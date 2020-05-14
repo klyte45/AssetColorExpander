@@ -6,5 +6,9 @@ namespace Klyte.AssetColorExpander.XML
     {
         [XmlAttribute(AttributeName = "assetName")]
         public string AssetName { get; set; }
+        [XmlIgnore]
+        internal string BuildingName { get; set; }
+        [XmlIgnore]
+        internal string NetName { get; set; }
     }
 }

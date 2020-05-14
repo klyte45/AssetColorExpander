@@ -16,13 +16,180 @@ namespace Klyte.AssetColorExpander
 {
     public class ACEController : BaseController<AssetColorExpanderMod, ACEController>
     {
-        public const string DEFAULT_XML_NAME_BUILDING = "k45_bce_data.xml";
-        public const string DEFAULT_XML_NAME_VEHICLE = "k45_vce_data.xml";
+        public const string DEFAULT_XML_NAME_BUILDING_OLD = "k45_bce_data.xml";
+        public const string DEFAULT_XML_NAME_BUILDING = "k45_ace_data_building.xml";
+        public const string DEFAULT_XML_NAME_BUILDING_PROPS = "k45_ace_data_buildingProps.xml";
+        public const string DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL = "k45_ace_data_buildingPropsGlobal.xml";
+
+        public const string DEFAULT_XML_NAME_NET_PROPS = "k45_ace_data_netProps.xml";
+        public const string DEFAULT_XML_NAME_NET_PROPS_GLOBAL = "k45_ace_data_netPropsGlobal.xml";
+
+        public const string DEFAULT_XML_NAME_VEHICLE_OLD = "k45_vce_data.xml";
+        public const string DEFAULT_XML_NAME_VEHICLE = "k45_ace_data_vehicle.xml";
+        public const string DEFAULT_XML_NAME_CITIZEN = "k45_ace_data_citizen.xml";
+        public const string DEFAULT_XML_NAME_PROP = "k45_ace_data_prop.xml";
+
         public static readonly string FOLDER_PATH = FileUtils.BASE_FOLDER_PATH + "AssetColorExpander";
         public const string DEFAULT_CUSTOM_CONFIG_FOLDER = "GeneralXmlConfigs";
 
         internal readonly Dictionary<string, BuildingAssetFolderRuleXml> m_colorConfigDataBuildings = new Dictionary<string, BuildingAssetFolderRuleXml>();
+        internal readonly Dictionary<string, Dictionary<string, PropAssetFolderRuleXml>> m_colorConfigDataBuildingsProps = new Dictionary<string, Dictionary<string, PropAssetFolderRuleXml>>();
+        internal readonly Dictionary<string, PropAssetFolderRuleXml> m_colorConfigDataBuildingsPropsGlobal = new Dictionary<string, PropAssetFolderRuleXml>();
+
+        internal readonly Dictionary<string, Dictionary<string, PropAssetFolderRuleXml>> m_colorConfigDataNetsProps = new Dictionary<string, Dictionary<string, PropAssetFolderRuleXml>>();
+        internal readonly Dictionary<string, PropAssetFolderRuleXml> m_colorConfigDataNetsPropsGlobal = new Dictionary<string, PropAssetFolderRuleXml>();
+
+        internal readonly Dictionary<string, PropAssetFolderRuleXml> m_colorConfigDataProps = new Dictionary<string, PropAssetFolderRuleXml>();
+
+        internal readonly Dictionary<string, CitizenAssetFolderRuleXml> m_colorConfigDataCitizens = new Dictionary<string, CitizenAssetFolderRuleXml>();
+
         internal readonly Dictionary<string, VehicleAssetFolderRuleXml> m_colorConfigDataVehicles = new Dictionary<string, VehicleAssetFolderRuleXml>();
+
+        private FormattedReportLine[][] m_cachedLoadedReport = new FormattedReportLine[Enum.GetValues(typeof(CacheOrder)).Length][];
+
+        internal ref FormattedReportLine[] GetLoadedReport(CacheOrder target)
+        {
+            switch (target)
+            {
+                case CacheOrder.BUILDING:
+                    if (m_cachedLoadedReport[(int)CacheOrder.BUILDING] == null)
+                    {
+                        if (m_colorConfigDataBuildings.Count + m_colorConfigDataBuildingsProps.Count + m_colorConfigDataBuildingsPropsGlobal.Count == 0)
+                        {
+                            m_cachedLoadedReport[(int)CacheOrder.BUILDING] = new FormattedReportLine[0];
+                        }
+                        else
+                        {
+                            var report = new Dictionary<string, List<FormattedReportLine>>();
+                            foreach (KeyValuePair<string, BuildingAssetFolderRuleXml> entry in m_colorConfigDataBuildings)
+                            {
+                                (report[entry.Key] ??= new List<FormattedReportLine>()).Add(new FormattedReportLine("<Self>"));
+                            }
+                            foreach (KeyValuePair<string, PropAssetFolderRuleXml> entry in m_colorConfigDataBuildingsPropsGlobal)
+                            {
+                                (report[entry.Key] ??= new List<FormattedReportLine>()).Add(new FormattedReportLine("<Global prop>"));
+                            }
+                            foreach (KeyValuePair<string, Dictionary<string, PropAssetFolderRuleXml>> entry in m_colorConfigDataBuildingsProps)
+                            {
+                                foreach (KeyValuePair<string, PropAssetFolderRuleXml> subEntry in entry.Value)
+                                {
+                                    (report[entry.Key] ??= new List<FormattedReportLine>()).Add(new FormattedReportLine("(Prop) " + subEntry.Key));
+                                }
+                            }
+                            m_cachedLoadedReport[(int)CacheOrder.BUILDING] = report.SelectMany(x => new FormattedReportLine[] { new FormattedReportLine(x.Key, 0) }.Union(x.Value)).ToArray();
+                        }
+                    }
+                    return ref m_cachedLoadedReport[(int)CacheOrder.BUILDING];
+                case CacheOrder.NET:
+                    if (m_cachedLoadedReport[(int)CacheOrder.NET] == null)
+                    {
+                        if (m_colorConfigDataNetsProps.Count + m_colorConfigDataNetsPropsGlobal.Count == 0)
+                        {
+                            m_cachedLoadedReport[(int)CacheOrder.NET] = new FormattedReportLine[0];
+                        }
+                        else
+                        {
+                            var report = new Dictionary<string, List<FormattedReportLine>>();
+                            foreach (KeyValuePair<string, PropAssetFolderRuleXml> entry in m_colorConfigDataNetsPropsGlobal)
+                            {
+                                (report[entry.Key] ??= new List<FormattedReportLine>()).Add(new FormattedReportLine("<Global prop>"));
+                            }
+                            foreach (KeyValuePair<string, Dictionary<string, PropAssetFolderRuleXml>> entry in m_colorConfigDataNetsProps)
+                            {
+                                foreach (KeyValuePair<string, PropAssetFolderRuleXml> subEntry in entry.Value)
+                                {
+                                    (report[entry.Key] ??= new List<FormattedReportLine>()).Add(new FormattedReportLine("(Prop) " + subEntry.Key));
+                                }
+                            }
+                            m_cachedLoadedReport[(int)CacheOrder.NET] = report.SelectMany(x => new FormattedReportLine[] { new FormattedReportLine(x.Key, 0) }.Union(x.Value)).ToArray();
+                        }
+                    }
+                    return ref m_cachedLoadedReport[(int)CacheOrder.NET];
+                case CacheOrder.PROP_PLACED:
+                    if (m_cachedLoadedReport[(int)CacheOrder.PROP_PLACED] == null)
+                    {
+                        if (m_colorConfigDataProps.Count == 0)
+                        {
+                            m_cachedLoadedReport[(int)CacheOrder.PROP_PLACED] = new FormattedReportLine[0];
+                        }
+                        else
+                        {
+                            var report = new List<FormattedReportLine>();
+                            foreach (KeyValuePair<string, PropAssetFolderRuleXml> entry in m_colorConfigDataProps)
+                            {
+                                (report).Add(new FormattedReportLine(entry.Key, 0));
+                            }
+                            m_cachedLoadedReport[(int)CacheOrder.PROP_PLACED] = report.ToArray();
+                        }
+                    }
+                    return ref m_cachedLoadedReport[(int)CacheOrder.PROP_PLACED];
+                case CacheOrder.VEHICLE:
+                    if (m_cachedLoadedReport[(int)CacheOrder.VEHICLE] == null)
+                    {
+                        if (m_colorConfigDataVehicles.Count == 0)
+                        {
+                            m_cachedLoadedReport[(int)CacheOrder.VEHICLE] = new FormattedReportLine[0];
+                        }
+                        else
+                        {
+                            var report = new List<FormattedReportLine>();
+                            foreach (KeyValuePair<string, VehicleAssetFolderRuleXml> entry in m_colorConfigDataVehicles)
+                            {
+                                (report).Add(new FormattedReportLine(entry.Key, 0));
+                            }
+                            m_cachedLoadedReport[(int)CacheOrder.VEHICLE] = report.ToArray();
+                        }
+                    }
+                    return ref m_cachedLoadedReport[(int)CacheOrder.VEHICLE];
+                case CacheOrder.CITIZEN:
+                    if (m_cachedLoadedReport[(int)CacheOrder.CITIZEN] == null)
+                    {
+                        if (m_colorConfigDataCitizens.Count == 0)
+                        {
+                            m_cachedLoadedReport[(int)CacheOrder.CITIZEN] = new FormattedReportLine[0];
+                        }
+                        else
+                        {
+                            var report = new List<FormattedReportLine>();
+                            foreach (KeyValuePair<string, CitizenAssetFolderRuleXml> entry in m_colorConfigDataCitizens)
+                            {
+                                (report).Add(new FormattedReportLine(entry.Key, 0));
+                            }
+                            m_cachedLoadedReport[(int)CacheOrder.CITIZEN] = report.ToArray();
+                        }
+                    }
+                    return ref m_cachedLoadedReport[(int)CacheOrder.CITIZEN];
+                default:
+                    return ref nullArr;
+            }
+        }
+        private FormattedReportLine[] nullArr = null;
+
+
+        internal class FormattedReportLine
+        {
+            public FormattedReportLine(string text, byte level = 1)
+            {
+                Text = text;
+                Level = level;
+            }
+
+            public byte Level { get; private set; }
+            public string Text { get; private set; }
+
+            public override string ToString()
+            {
+                if (Level == 0)
+                {
+                    return $"\t<color #FFFF00>- {Text}</color>";
+                }
+                else
+                {
+                    return $"\t\t<color #FFFFFF>- {Text}</color>";
+                }
+            }
+        }
+
 
         public Color?[][] CachedColor { get; private set; } = new Color?[Enum.GetValues(typeof(CacheOrder)).Length][];
 
@@ -34,7 +201,8 @@ namespace Klyte.AssetColorExpander
             VEHICLE,
             PARKED_VEHICLE,
             CITIZEN,
-            PROP_PLACED
+            PROP_PLACED,
+            NET
         }
 
         public enum CacheOrderSubprops
@@ -106,55 +274,7 @@ namespace Klyte.AssetColorExpander
             AllAICitizen[typeof(HumanAI)] = null;
             AllAICitizen[typeof(AnimalAI)] = null;
         }
-
-        private void ReloadFiles()
-        {
-            m_colorConfigDataBuildings.Clear();
-            CleanCache();
-            LoadAllBuildingConfigurations();
-            LoadAllVehiclesConfigurations();
-            if (AssetColorExpanderMod.DebugMode)
-            {
-                var serializer = new XmlSerializer(typeof(BuildingAssetFolderRuleXml));
-                LogUtils.DoLog($"[Building] itemCount = {m_colorConfigDataBuildings.Count} \r\n" + string.Join("\r\n", m_colorConfigDataBuildings.Select((x) =>
-                {
-                    var strWriter = new StringWriter();
-                    serializer.Serialize(strWriter, x.Value);
-                    string val = strWriter.ToString();
-                    strWriter.Close();
-                    return $"{x.Key} => [ \r\n{val}\r\n ]";
-                }).ToArray()));
-
-                serializer = new XmlSerializer(typeof(VehicleAssetFolderRuleXml));
-                LogUtils.DoLog($"[Vehicle] itemCount = {m_colorConfigDataVehicles.Count} \r\n" + string.Join("\r\n", m_colorConfigDataVehicles.Select((x) =>
-                {
-                    var strWriter = new StringWriter();
-                    serializer.Serialize(strWriter, x.Value);
-                    string val = strWriter.ToString();
-                    strWriter.Close();
-                    return $"{x.Key} => [ \r\n{val}\r\n ]";
-                }).ToArray()));
-            }
-        }
-        public void LoadAllVehiclesConfigurations() => Commons.Utils.FileUtils.ScanPrefabsFolders<VehicleInfo>($"{DEFAULT_XML_NAME_VEHICLE}.xml", LoadDescriptorsFromXml);
-
-        private void LoadDescriptorsFromXml(FileStream stream, VehicleInfo info)
-        {
-
-            var serializer = new XmlSerializer(typeof(ACERulesetContainer<VehicleAssetFolderRuleXml>));
-
-            if (serializer.Deserialize(stream) is ACERulesetContainer<VehicleAssetFolderRuleXml> configList)
-            {
-                foreach (VehicleAssetFolderRuleXml config in configList.m_dataArray)
-                {
-                    if (!string.IsNullOrEmpty(config.AssetName))
-                    {
-                        m_colorConfigDataVehicles[config.AssetName] = config;
-                    }
-                }
-            }
-        }
-
+        #region cache
         public void CleanCache()
         {
             CleanCacheVehicle();
@@ -190,24 +310,158 @@ namespace Klyte.AssetColorExpander
             UpdatedRulesSubPropsNets = new bool[NetManager.MAX_LANE_COUNT][][];
             CachedColorSubPropsNets = new Color?[NetManager.MAX_LANE_COUNT][][];
         }
+        #endregion
 
-        public void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders<BuildingInfo>($"{DEFAULT_XML_NAME_BUILDING}.xml", LoadDescriptorsFromXml);
-
-        private void LoadDescriptorsFromXml(FileStream stream, BuildingInfo info)
+        #region Load asset config files
+        private void ReloadFiles()
         {
-            var serializer = new XmlSerializer(typeof(ACERulesetContainer<BuildingAssetFolderRuleXml>));
-
-            if (serializer.Deserialize(stream) is ACERulesetContainer<BuildingAssetFolderRuleXml> configList)
+            m_colorConfigDataBuildings.Clear();
+            CleanCache();
+            LoadAllBuildingConfigurations();
+            LoadAllVehiclesConfigurations();
+            LoadAllNetConfigurations();
+            LoadAllPropConfigurations();
+            LoadAllCitizenConfigurations();
+            if (AssetColorExpanderMod.DebugMode)
             {
-                foreach (BuildingAssetFolderRuleXml config in configList.m_dataArray)
+                var serializer = new XmlSerializer(typeof(BuildingAssetFolderRuleXml));
+                LogUtils.DoLog($"[Building] itemCount = {m_colorConfigDataBuildings.Count} \r\n" + string.Join("\r\n", m_colorConfigDataBuildings.Select((x) =>
                 {
-                    if (!string.IsNullOrEmpty(config.AssetName))
-                    {
-                        m_colorConfigDataBuildings[config.AssetName] = config;
-                    }
-                }
+                    var strWriter = new StringWriter();
+                    serializer.Serialize(strWriter, x.Value);
+                    string val = strWriter.ToString();
+                    strWriter.Close();
+                    return $"{x.Key} => [ \r\n{val}\r\n ]";
+                }).ToArray()));
+
+                serializer = new XmlSerializer(typeof(VehicleAssetFolderRuleXml));
+                LogUtils.DoLog($"[Vehicle] itemCount = {m_colorConfigDataVehicles.Count} \r\n" + string.Join("\r\n", m_colorConfigDataVehicles.Select((x) =>
+                {
+                    var strWriter = new StringWriter();
+                    serializer.Serialize(strWriter, x.Value);
+                    string val = strWriter.ToString();
+                    strWriter.Close();
+                    return $"{x.Key} => [ \r\n{val}\r\n ]";
+                }).ToArray()));
             }
         }
+        private void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, BuildingInfo>>
+        {
+            [DEFAULT_XML_NAME_BUILDING] = LoadDescriptorsFromXml<BuildingAssetFolderRuleXml, BuildingInfo>(RegisterBuildingConfig),
+            [DEFAULT_XML_NAME_BUILDING_OLD] = LoadDescriptorsFromXml<BuildingAssetFolderRuleXml, BuildingInfo>(RegisterBuildingConfig),
+            [DEFAULT_XML_NAME_BUILDING_PROPS] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, BuildingInfo>(RegisterBuildingPropConfig),
+            [DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, BuildingInfo>(RegisterBuildingPropGlobalConfig)
+        });
+        private void LoadAllNetConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, NetInfo>>
+        {
+            [DEFAULT_XML_NAME_NET_PROPS] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, NetInfo>(RegisterNetPropConfig),
+            [DEFAULT_XML_NAME_NET_PROPS_GLOBAL] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, NetInfo>(RegisterNetPropGlobalConfig)
+        });
+        private void LoadAllPropConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, PropInfo>>
+        {
+            [DEFAULT_XML_NAME_PROP] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, PropInfo>(RegisterPropConfig)
+        });
+
+        private void LoadAllCitizenConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, CitizenInfo>>
+        {
+            [DEFAULT_XML_NAME_CITIZEN] = LoadDescriptorsFromXml<CitizenAssetFolderRuleXml, CitizenInfo>(RegisterCitizenConfig)
+        });
+        private void LoadAllVehiclesConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, VehicleInfo>>
+        {
+            [DEFAULT_XML_NAME_VEHICLE] = LoadDescriptorsFromXml<VehicleAssetFolderRuleXml, VehicleInfo>(RegisterVehicleConfig),
+            [DEFAULT_XML_NAME_VEHICLE_OLD] = LoadDescriptorsFromXml<VehicleAssetFolderRuleXml, VehicleInfo>(RegisterVehicleConfig)
+        });
+
+        private Action<FileStream, P> LoadDescriptorsFromXml<T, P>(Action<T, P> loadAction) where T : BasicColorConfigurationXml, new() where P : PrefabInfo
+        {
+            return (FileStream stream, P info) =>
+            {
+                var serializer = new XmlSerializer(typeof(ACERulesetContainer<T>));
+
+                if (serializer.Deserialize(stream) is ACERulesetContainer<T> configList)
+                {
+                    foreach (T config in configList.m_dataArray)
+                    {
+                        loadAction(config, info);
+                    }
+                }
+            };
+        }
+        public void RegisterVehicleConfig(VehicleAssetFolderRuleXml config, VehicleInfo info)
+        {
+            if (config.AssetName?.Split(new char[] { '.' }, 2)?[1] == info.name?.Split(new char[] { '.' }, 2)?[1])
+            {
+                config.AssetName = info.name;
+                m_colorConfigDataVehicles[info.name] = config;
+            }
+        }
+        private void RegisterCitizenConfig(CitizenAssetFolderRuleXml config, CitizenInfo info)
+        {
+            if (config.AssetName?.Split(new char[] { '.' }, 2)?[1] == info.name?.Split(new char[] { '.' }, 2)?[1])
+            {
+                config.AssetName = info.name;
+                m_colorConfigDataCitizens[info.name] = config;
+            }
+        }
+        private void RegisterPropConfig(PropAssetFolderRuleXml config, PropInfo info)
+        {
+            if (config.AssetName?.Split(new char[] { '.' }, 2)?[1] == info.name?.Split(new char[] { '.' }, 2)?[1])
+            {
+                config.AssetName = info.name;
+                m_colorConfigDataProps[info.name] = config;
+            }
+        }
+        private void RegisterBuildingConfig(BuildingAssetFolderRuleXml config, BuildingInfo info)
+        {
+            if (config.AssetName?.Split(new char[] { '.' }, 2)?[1] == info.name?.Split(new char[] { '.' }, 2)?[1])
+            {
+                config.AssetName = info.name;
+                m_colorConfigDataBuildings[info.name] = config;
+            }
+        }
+        private void RegisterBuildingPropConfig(PropAssetFolderRuleXml config, BuildingInfo info)
+        {
+            if (config.AssetName != null)
+            {
+                config.BuildingName = info.name;
+                if (m_colorConfigDataBuildingsProps[info.name] == null)
+                {
+                    m_colorConfigDataBuildingsProps[info.name] = new Dictionary<string, PropAssetFolderRuleXml>();
+                }
+                m_colorConfigDataBuildingsProps[info.name][config.AssetName] = config;
+            }
+        }
+        private void RegisterBuildingPropGlobalConfig(PropAssetFolderRuleXml config, BuildingInfo info)
+        {
+            if (config.AssetName == null)
+            {
+                config.BuildingName = info.name;
+                m_colorConfigDataBuildingsPropsGlobal[info.name] = config;
+            }
+        }
+
+
+        private void RegisterNetPropConfig(PropAssetFolderRuleXml config, NetInfo info)
+        {
+            if (config.AssetName != null)
+            {
+                config.NetName = info.name;
+                if (m_colorConfigDataNetsProps[info.name] == null)
+                {
+                    m_colorConfigDataNetsProps[info.name] = new Dictionary<string, PropAssetFolderRuleXml>();
+                }
+                m_colorConfigDataNetsProps[info.name][config.AssetName] = config;
+            }
+        }
+        private void RegisterNetPropGlobalConfig(PropAssetFolderRuleXml config, NetInfo info)
+        {
+            if (config.AssetName == null)
+            {
+                config.NetName = info.name;
+                m_colorConfigDataNetsPropsGlobal[info.name] = config;
+            }
+        }
+        #endregion
 
         #region Prefab loading
 

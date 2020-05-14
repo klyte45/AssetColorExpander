@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Klyte.AssetColorExpander.UI
 {
-    public abstract class ACEBasicController<E, R, D, L, I> : UICustomControl where E : UICustomControl where R : BasicRulesList<D, L, I> where D : ILibable, new() where L : LibBaseFile<L, I>, new() where I : ILibableAsContainer<D>, new()
+    public abstract class ACEBasicUIController<E, R, D, L, I> : UICustomControl where E : UICustomControl where R : BasicRulesList<D, L, I> where D : ILibable, new() where L : LibBaseFile<L, I>, new() where I : ILibableAsContainer<D>, new()
     {
         public R RuleList { get; private set; }
         public UIPanel MainPanel { get; private set; }
