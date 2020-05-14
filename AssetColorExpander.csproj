@@ -340,6 +340,9 @@
     <EmbeddedResource Include="UI\Images\%25K45_ACE_Icon.png" />
     <Content Include="UI\Images\icon.psd" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="_requiredDLLs\" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y "$(TargetPath)" "$(ProjectDir)\_requiredDLLs"
 xcopy /Y "$(TargetDir)0Harmony.dll" "$(ProjectDir)\_requiredDLLs\"

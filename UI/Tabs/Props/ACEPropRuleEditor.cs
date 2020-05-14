@@ -163,7 +163,7 @@ namespace Klyte.AssetColorExpander.UI
         {
             x.m_colorList.Add(Color.white);
             UpdateColorList(ref x);
-        });
+        }); 
         public void Start()
         {
             m_class.items = AssetColorExpanderMod.Controller?.AllClassesProp?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
