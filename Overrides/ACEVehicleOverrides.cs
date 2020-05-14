@@ -119,7 +119,20 @@ namespace Klyte.AssetColorExpander
             return PreGetColor_Internal(vehicleID, data.Info, infoMode, ref __result, ref ColorCache[vehicleID], ref RulesUpdated[vehicleID], vehicleID, false, 0);
         }
 
-        public static void AfterReleaseParkedVehicle(ushort parked) => RulesUpdatedParked[parked] = false;
-        public static void AfterReleaseVehicle(ushort vehicle) => RulesUpdated[vehicle] = false;
+        public static void AfterReleaseParkedVehicle(ushort parked)
+        {
+            if (AssetColorExpanderMod.Controller != null && RulesUpdatedParked != null)
+            {
+                RulesUpdatedParked[parked] = false;
+            }
+        }
+
+        public static void AfterReleaseVehicle(ushort vehicle)
+        {
+            if (AssetColorExpanderMod.Controller != null && RulesUpdated != null)
+            {
+                RulesUpdated[vehicle] = false;
+            }
+        }
     }
 }

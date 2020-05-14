@@ -63,6 +63,13 @@ namespace Klyte.AssetColorExpander
             return ACEColorGenUtils.GetColor(buildingID, ref __result, itemData, ref ColorCache[buildingID], ref RulesUpdated[buildingID]);
         }
 
-        public static void AfterReleaseBuilding(ushort building) => RulesUpdated[building] = false;
+        public static void AfterReleaseBuilding(ushort building)
+        {
+            if (AssetColorExpanderMod.Controller != null && RulesUpdated != null && AssetColorExpanderMod.Controller.UpdatedRulesSubPropsBuildings != null)
+            {
+                RulesUpdated[building] = false;
+                AssetColorExpanderMod.Controller.UpdatedRulesSubPropsBuildings[building] = null;
+            }
+        }
     }
 }

@@ -72,6 +72,8 @@
     <Compile Include="Libraries\ACECitizenRulesetLib.cs" />
     <Compile Include="Libraries\ACEVehcileRuleLib.cs" />
     <Compile Include="Libraries\ACEVehicleRulesetLib.cs" />
+    <Compile Include="Overrides\ACENetsOverrides.cs" />
+    <Compile Include="Overrides\ACEPropPlacedOverrides.cs" />
     <Compile Include="Overrides\ACECitizenOverrides.cs" />
     <Compile Include="Overrides\ACEColorGenUtils.cs" />
     <Compile Include="Overrides\ACEVehicleOverrides.cs" />

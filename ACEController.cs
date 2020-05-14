@@ -37,11 +37,23 @@ namespace Klyte.AssetColorExpander
             PROP_PLACED
         }
 
+        public enum CacheOrderSubprops
+        {
+            BUILDING,
+            NETS
+        }
+
+        public Color?[][] CachedColorSubPropsBuildings = null;
+        public bool[][] UpdatedRulesSubPropsBuildings = null;
+
+        public Color?[][][] CachedColorSubPropsNets = null;
+        public bool[][][] UpdatedRulesSubPropsNets = null;
+
         public Dictionary<ItemClass, List<BuildingInfo>> AllClassesBuilding { get; private set; }
         public Dictionary<ItemClass, List<VehicleInfo>> AllClassesVehicle { get; private set; }
         public Dictionary<ItemClass, List<CitizenInfo>> AllClassesCitizen { get; private set; }
         public Dictionary<ItemClass, List<PropInfo>> AllClassesProp { get; private set; }
-        public Dictionary<ItemClass, List<NetInfo>> AllClassesNet{ get; private set; }
+        public Dictionary<ItemClass, List<NetInfo>> AllClassesNet { get; private set; }
         public Dictionary<Type, List<CitizenInfo>> AllAICitizen { get; private set; }
 
         protected override void StartActions()
@@ -173,6 +185,10 @@ namespace Klyte.AssetColorExpander
         {
             UpdatedRules[(int)CacheOrder.PROP_PLACED] = new bool[PropManager.MAX_PROP_COUNT];
             CachedColor[(int)CacheOrder.PROP_PLACED] = new Color?[PropManager.MAX_PROP_COUNT];
+            UpdatedRulesSubPropsBuildings = new bool[BuildingManager.MAX_BUILDING_COUNT][];
+            CachedColorSubPropsBuildings = new Color?[BuildingManager.MAX_BUILDING_COUNT][];
+            UpdatedRulesSubPropsNets = new bool[NetManager.MAX_LANE_COUNT][][];
+            CachedColorSubPropsNets = new Color?[NetManager.MAX_LANE_COUNT][][];
         }
 
         public void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders<BuildingInfo>($"{DEFAULT_XML_NAME_BUILDING}.xml", LoadDescriptorsFromXml);

@@ -52,6 +52,12 @@ namespace Klyte.AssetColorExpander
             return ACEColorGenUtils.GetColor(instanceID, ref __result, itemData, ref ColorCache[instanceID], ref RulesUpdated[instanceID]);
         }
 
-        public static void AfterReleaseCitizenInstance(ushort instance) => RulesUpdated[instance] = false;
+        public static void AfterReleaseCitizenInstance(ushort instance)
+        {
+            if (AssetColorExpanderMod.Controller != null && RulesUpdated != null)
+            {
+                RulesUpdated[instance] = false;
+            }
+        }
     }
 }

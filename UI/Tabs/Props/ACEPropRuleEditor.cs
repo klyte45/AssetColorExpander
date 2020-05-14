@@ -94,13 +94,6 @@ namespace Klyte.AssetColorExpander.UI
             AddDropdown(Locale.Get("K45_ACE_BASICTAB_LEVELFILTER"), out m_level, helperSettings, (Enum.GetValues(typeof(ItemClass.Level)) as ItemClass.Level[]).OrderBy(x => (int)x).Select(x => $"{x}").ToArray(), OnChangeLevelFilter);
             AddDropdown(Locale.Get("K45_ACE_BASICTAB_CLASSFILTER"), out m_class, helperSettings, new string[0], OnChangeClassFilter);
             AddDropdown(Locale.Get("K45_ACE_BASICTAB_CLASSFILTER"), out m_parentClass, helperSettings, new string[0], OnChangeParentClassFilter);
-            AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
-
-            KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
-            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.FilterPropsByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
-            m_popup.height = 290;
-            m_popup.width -= 20;
-
             AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT_BUILDING"), out m_assetFilterBuilding, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterBuilding);
@@ -114,6 +107,13 @@ namespace Klyte.AssetColorExpander.UI
             m_popupNet = ConfigureListSelectionPopupForUITextField(m_assetFilterNet, () => AssetColorExpanderMod.Controller?.FilterNetsByText(m_assetFilterNet.text), OnAssetSelectedNetChanged, GetCurrentSelectionNameNet);
             m_popupNet.height = 290;
             m_popupNet.width -= 20;
+
+            AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
+
+            KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
+            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.FilterPropsByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup.height = 290;
+            m_popup.width -= 20;
 
             AddLibBox<ACEPropRuleLib, PropCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
@@ -156,7 +156,7 @@ namespace Klyte.AssetColorExpander.UI
             m_pasteSettings.isVisible = false;
         }
 
-        private void Help_DistrictFilter() => K45DialogControl.ShowModalHelp("General.DistrictFilter", Locale.Get("K45_ACE_BASICTAB_DISTRICTFILTER"), 0);
+        private void Help_DistrictFilter() => K45DialogControl.ShowModalHelp("General.DistrictFilter", Locale.Get("K45_ACE_PROPRULES_DISTRICTFILTER"), 0);
         private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Prop.ColoringMode", Locale.Get("K45_ACE_PROPRULES_COLORMODE"), 0);
         private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Prop.TypeOfRule", Locale.Get("K45_ACE_PROPRULES_RULEFILTER"), 0);
         private void AddColor() => SafeObtain((ref PropCityDataRuleXml x) =>
@@ -444,9 +444,11 @@ namespace Klyte.AssetColorExpander.UI
             m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeProp.SERVICE_SUBSERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL;
             m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ITEM_CLASS;
             m_parentClass.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.PARENT_ITEM_CLASS;
-            m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_SELF;
-            m_assetFilterBuilding.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING;
-            m_assetFilterNet.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET;
+            m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_SELF || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET_SELF;
+            m_assetFilterBuilding.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF;
+            m_assetFilterNet.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET_SELF;
+
+            m_popup.height = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET_SELF ? 250 : 290;
         }
 
         private string m_clipboard;

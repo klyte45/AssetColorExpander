@@ -27,50 +27,79 @@ namespace Klyte.AssetColorExpander.XML
         [XmlAttribute]
         public RuleCheckTypeProp RuleCheckType { get; set; }
 
-        internal bool Accepts(ItemClass itemClass, ItemClass parentItemClass, string propInfoName, string buildingName, string netName)
+        internal bool Accepts(ItemClass itemClass, ItemClass parentItemClass, string propInfoName, string buildingInfoName, string netInfoName, byte district, byte park)
         {
-            ItemClass effectiveItemClass = itemClass;
-            switch (RuleCheckType)
+            if (Allows(district, park))
             {
-                case RuleCheckTypeProp.PARENT_SERVICE:
-                case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE:
-                case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL:
-                case RuleCheckTypeProp.PARENT_SERVICE_LEVEL:
-                case RuleCheckTypeProp.PARENT_ITEM_CLASS:
-                    if (parentItemClass == null)
-                    {
-                        return false;
-                    }
-                    effectiveItemClass = parentItemClass;
-                    break;
-            }
+                ItemClass effectiveItemClass = itemClass;
+                switch (RuleCheckType)
+                {
+                    case RuleCheckTypeProp.PARENT_SERVICE:
+                    case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE:
+                    case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL:
+                    case RuleCheckTypeProp.PARENT_SERVICE_LEVEL:
+                    case RuleCheckTypeProp.PARENT_ITEM_CLASS:
+                        if (parentItemClass == null)
+                        {
+                            return false;
+                        }
+                        effectiveItemClass = parentItemClass;
+                        break;
+                }
 
-            switch (RuleCheckType)
-            {
-                case RuleCheckTypeProp.ITEM_CLASS:
-                case RuleCheckTypeProp.PARENT_ITEM_CLASS:
-                    return effectiveItemClass.name == ItemClassName;
-                case RuleCheckTypeProp.SERVICE:
-                case RuleCheckTypeProp.PARENT_SERVICE:
-                    return Service == ItemClass.Service.None || effectiveItemClass.m_service == Service;
-                case RuleCheckTypeProp.SERVICE_SUBSERVICE:
-                case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE:
-                    return (Service == ItemClass.Service.None || effectiveItemClass.m_service == Service) && effectiveItemClass.m_subService == SubService;
-                case RuleCheckTypeProp.SERVICE_LEVEL:
-                case RuleCheckTypeProp.PARENT_SERVICE_LEVEL:
-                    return (Service == ItemClass.Service.None || effectiveItemClass.m_service == Service) && effectiveItemClass.m_level == Level;
-                case RuleCheckTypeProp.SERVICE_SUBSERVICE_LEVEL:
-                case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL:
-                    return (Service == ItemClass.Service.None || effectiveItemClass.m_service == Service) && effectiveItemClass.m_subService == SubService && effectiveItemClass.m_level == Level;
-                case RuleCheckTypeProp.ASSET_NAME_SELF:
-                    return propInfoName != null && propInfoName == AssetNameSelf;
-                case RuleCheckTypeProp.ASSET_NAME_BUILDING:
-                    return buildingName != null && buildingName == AssetNameBuilding;
-                case RuleCheckTypeProp.ASSET_NAME_NET:
-                    return netName != null && netName == AssetNameNet;
+                switch (RuleCheckType)
+                {
+                    case RuleCheckTypeProp.ITEM_CLASS:
+                    case RuleCheckTypeProp.PARENT_ITEM_CLASS:
+                        return effectiveItemClass.name == ItemClassName;
+                    case RuleCheckTypeProp.SERVICE:
+                    case RuleCheckTypeProp.PARENT_SERVICE:
+                        return Service == ItemClass.Service.None || effectiveItemClass.m_service == Service;
+                    case RuleCheckTypeProp.SERVICE_SUBSERVICE:
+                    case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE:
+                        return (Service == ItemClass.Service.None || effectiveItemClass.m_service == Service) && effectiveItemClass.m_subService == SubService;
+                    case RuleCheckTypeProp.SERVICE_LEVEL:
+                    case RuleCheckTypeProp.PARENT_SERVICE_LEVEL:
+                        return (Service == ItemClass.Service.None || effectiveItemClass.m_service == Service) && effectiveItemClass.m_level == Level;
+                    case RuleCheckTypeProp.SERVICE_SUBSERVICE_LEVEL:
+                    case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL:
+                        return (Service == ItemClass.Service.None || effectiveItemClass.m_service == Service) && effectiveItemClass.m_subService == SubService && effectiveItemClass.m_level == Level;
+                    case RuleCheckTypeProp.ASSET_NAME_SELF:
+                        return propInfoName != null && propInfoName == AssetNameSelf;
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING:
+                        return buildingInfoName != null && buildingInfoName == AssetNameBuilding;
+                    case RuleCheckTypeProp.ASSET_NAME_NET:
+                        return netInfoName != null && netInfoName == AssetNameNet;
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
+                        return propInfoName != null && propInfoName == AssetNameSelf && buildingInfoName != null && buildingInfoName == AssetNameBuilding;
+                    case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
+                        return propInfoName != null && propInfoName == AssetNameSelf && netInfoName != null && netInfoName == AssetNameNet;
+                }
             }
             return false;
         }
+
+        private bool Allows(byte district, byte park)
+        {
+            if (district == 0 && park > 0)
+            {
+                return AllowsPark(park);
+            }
+            if (park == 0)
+            {
+                return AllowsDistrict(district);
+            }
+            switch (DistrictRestrictionOrder)
+            {
+                case DistrictRestrictionOrder.ParksOrDistricts:
+                default:
+                    return AllowsDistrict(district) || AllowsPark(park);
+                case DistrictRestrictionOrder.ParksAndDistricts:
+                    return AllowsDistrict(district) && AllowsPark(park);
+            }
+        }
+        public bool AllowsDistrict(byte districtId) => SelectedDistricts.Contains(districtId) != SelectedDistrictsIsBlacklist;
+        public bool AllowsPark(byte districtId) => SelectedDistricts.Contains((ushort)(0x100 | districtId)) != SelectedDistrictsIsBlacklist;
     }
 
 }
