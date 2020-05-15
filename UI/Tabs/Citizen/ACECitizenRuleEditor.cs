@@ -82,7 +82,7 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_CITIZENRULES_ASSETSELECT"), out m_assetFilterSelf, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterSelf);
-            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, () => AssetColorExpanderMod.Controller?.FilterCitizensByText(m_assetFilterSelf.text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
+            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterCitizensByText(m_assetFilterSelf.text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
             m_popupSelf.height = 290;
             m_popupSelf.width -= 20;
 
@@ -123,8 +123,8 @@ namespace Klyte.AssetColorExpander.UI
         });
         public void Start()
         {
-            m_class.items = AssetColorExpanderMod.Controller?.AllClassesCitizen?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
-            m_ai.items = AssetColorExpanderMod.Controller?.AllAICitizen?.Keys?.Select(x => x.Name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
+            m_class.items = AssetColorExpanderMod.Controller?.ClassesCache.AllClassesCitizen?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
+            m_ai.items = AssetColorExpanderMod.Controller?.ClassesCache.AllAICitizen?.Keys?.Select(x => x.Name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
             ACEPanel.Instance.CitizenTab.RuleList.EventSelectionChanged += OnChangeTab;
         }
 
@@ -234,7 +234,7 @@ namespace Klyte.AssetColorExpander.UI
                 m_ai.selectedValue = x.AiClassName;
 
                 string targetAsset = x.AssetName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.CitizensLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.CitizensLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterSelf.text = entry?.Key ?? "";
 
 
@@ -325,7 +325,7 @@ namespace Klyte.AssetColorExpander.UI
 
         private void OnAssetSelectedSelfChanged(int sel) => SafeObtain((ref CitizenCityDataRuleXml x) =>
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.CitizensLoaded.TryGetValue(m_popupSelf.items[sel], out string assetName))
+            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.CitizensLoaded.TryGetValue(m_popupSelf.items[sel], out string assetName))
             {
                 x.AssetName = assetName;
                 m_assetFilterSelf.text = m_popupSelf.items[sel];
@@ -333,7 +333,7 @@ namespace Klyte.AssetColorExpander.UI
             else
             {
                 string targetAsset = x.AssetName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.CitizensLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.CitizensLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterSelf.text = entry?.Key ?? "";
             }
         });

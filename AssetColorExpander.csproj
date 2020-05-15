@@ -60,7 +60,10 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <Compile Include="ACEAssetCache.cs" />
+    <Compile Include="ACEClassesCache.cs" />
     <Compile Include="ACEController.cs" />
+    <Compile Include="ACELoadedDataContainer.cs" />
     <Compile Include="commons\Utils\PrefabUtils.cs" />
     <Compile Include="commons\Utils\UITemplateUtils.cs" />
     <Compile Include="Data\ACEPropConfigRulesData.cs" />
@@ -204,9 +207,11 @@
     <Compile Include="XML\BasicColorConfigurationXml.cs" />
     <Compile Include="XML\ColoringMode.cs" />
     <Compile Include="XML\Building\RuleCheckTypeBuilding.cs" />
+    <Compile Include="XML\IRuleCacheSource.cs" />
     <Compile Include="XML\Prop\PropAssetFolderRuleXml.cs" />
     <Compile Include="XML\Prop\PropCityDataRuleXml.cs" />
-    <Compile Include="XML\Prop\RuleCheckTypeProp.cs" />
+    <Compile Include="XML\RuleCheckTypeProp.cs" />
+    <Compile Include="XML\RuleSource.cs" />
     <Compile Include="XML\Vehicle\BasicVehicleColorConfigurationXml.cs" />
     <Compile Include="XML\Vehicle\VehicleCityDataRuleXml.cs" />
     <Compile Include="XML\Vehicle\RuleCheckTypeVehicle.cs" />

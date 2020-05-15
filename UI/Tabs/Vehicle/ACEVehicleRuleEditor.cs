@@ -83,13 +83,13 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_VEHICLERULES_ASSETSELECTSELF"), out m_assetFilterSelf, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterSelf);
-            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, () => AssetColorExpanderMod.Controller?.FilterVehiclesByText(m_assetFilterSelf.text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
+            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterVehiclesByText(m_assetFilterSelf.text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
             m_popupSelf.height = 290;
             m_popupSelf.width -= 20;
             AddTextField(Locale.Get("K45_ACE_VEHICLERULES_ASSETSELECTOWNER"), out m_assetFilterOwner, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterOwner);
-            m_popupOwner = ConfigureListSelectionPopupForUITextField(m_assetFilterOwner, () => AssetColorExpanderMod.Controller?.FilterBuildingsByText(m_assetFilterOwner.text), OnAssetSelectedOwnerChanged, GetCurrentSelectionNameOwner);
+            m_popupOwner = ConfigureListSelectionPopupForUITextField(m_assetFilterOwner, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(m_assetFilterOwner.text), OnAssetSelectedOwnerChanged, GetCurrentSelectionNameOwner);
             m_popupOwner.height = 290;
             m_popupOwner.width -= 20;
 
@@ -130,7 +130,7 @@ namespace Klyte.AssetColorExpander.UI
         });
         public void Start()
         {
-            m_class.items = AssetColorExpanderMod.Controller?.AllClassesVehicle?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
+            m_class.items = AssetColorExpanderMod.Controller?.ClassesCache.AllClassesVehicle?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
             ACEPanel.Instance.VehicleTab.RuleList.EventSelectionChanged += OnChangeTab;
         }
 
@@ -245,12 +245,12 @@ namespace Klyte.AssetColorExpander.UI
                 m_class.selectedValue = x.ItemClassName;
 
                 string targetAsset = x.AssetNameVehicle ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterSelf.text = entry?.Key ?? "";
 
 
                 targetAsset = x.AssetNameBuilding ?? "";
-                entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterOwner.text = entry?.Key ?? "";
 
                 ApplyRuleCheck(x);
@@ -341,7 +341,7 @@ namespace Klyte.AssetColorExpander.UI
 
         private void OnAssetSelectedSelfChanged(int sel) => SafeObtain((ref VehicleCityDataRuleXml x) =>
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.VehiclesLoaded.TryGetValue(m_popupSelf.items[sel], out string assetName))
+            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.VehiclesLoaded.TryGetValue(m_popupSelf.items[sel], out string assetName))
             {
                 x.AssetNameVehicle = assetName;
                 m_assetFilterSelf.text = m_popupSelf.items[sel];
@@ -349,13 +349,13 @@ namespace Klyte.AssetColorExpander.UI
             else
             {
                 string targetAsset = x.AssetNameVehicle ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterSelf.text = entry?.Key ?? "";
             }
         });
         private void OnAssetSelectedOwnerChanged(int sel) => SafeObtain((ref VehicleCityDataRuleXml x) =>
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.BuildingsLoaded.TryGetValue(m_popupOwner.items[sel], out string assetName))
+            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(m_popupOwner.items[sel], out string assetName))
             {
                 x.AssetNameBuilding = assetName;
                 m_assetFilterOwner.text = m_popupOwner.items[sel];
@@ -363,7 +363,7 @@ namespace Klyte.AssetColorExpander.UI
             else
             {
                 string targetAsset = x.AssetNameBuilding ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterOwner.text = entry?.Key ?? "";
             }
         });

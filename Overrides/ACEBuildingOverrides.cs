@@ -17,7 +17,7 @@ namespace Klyte.AssetColorExpander
             AddRedirect(typeof(BuildingManager).GetMethod("ReleaseBuilding"), null, typeof(ACEBuildingOverrides).GetMethod("AfterReleaseBuilding", RedirectorUtils.allFlags));
         }
 
-        public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataBuildings;
+        public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataBuildings;
         public static ref Color?[] ColorCache => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING];
         public static ref bool[] RulesUpdated => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)ACEController.CacheOrder.BUILDING];
 

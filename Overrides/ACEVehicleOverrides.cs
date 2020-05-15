@@ -34,7 +34,7 @@ namespace Klyte.AssetColorExpander
             AddRedirect(typeof(VehicleManager).GetMethod("ReleaseVehicle"), null, typeof(ACEVehicleOverrides).GetMethod("AfterReleaseVehicle", RedirectorUtils.allFlags));
         }
 
-        public static Dictionary<string, VehicleAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataVehicles;
+        public static Dictionary<string, VehicleAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataVehicles;
         public static ref Color?[] ColorCacheParked => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.PARKED_VEHICLE];
         public static ref Color?[] ColorCache => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.VEHICLE];
         public static ref bool[] RulesUpdatedParked => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)ACEController.CacheOrder.PARKED_VEHICLE];

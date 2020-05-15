@@ -9,6 +9,7 @@ using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using static Klyte.Commons.UI.DefaultEditorUILib;
@@ -21,8 +22,8 @@ namespace Klyte.AssetColorExpander.UI
         public UIPanel MainContainer { get; protected set; }
 
 
-        private const string DISTRICT_SELECTOR_TEMPLATE = "K45_ACE_DistrictSelectorTemplate";
-        private const string COLOR_SELECTOR_TEMPLATE = "K45_ACE_ColorListSelectorTemplate";
+        protected const string DISTRICT_SELECTOR_TEMPLATE = "K45_ACE_DistrictSelectorTemplate";
+        protected const string COLOR_SELECTOR_TEMPLATE = "K45_ACE_ColorListSelectorTemplate";
         private int m_currentIdx = -1;
 
         private UITabstrip m_tabstrip;
@@ -39,7 +40,10 @@ namespace Klyte.AssetColorExpander.UI
         private UIDropDown m_class;
         private UITextField m_assetFilter;
         private UIListBox m_popup;
-
+        private UIPanel m_exportButtonContainer;
+        private UIButton m_exportButton;
+        private UIPanel m_exportButtonContainerLocal;
+        private UIButton m_exportButtonLocal;
 
         private UIDropDown m_colorMode;
         private UIPanel m_listColorContainer;
@@ -92,9 +96,23 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_BUILDINGRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
-            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.FilterBuildingsByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
             m_popup.height = 290;
             m_popup.width -= 20;
+
+            KlyteMonoUtils.CreateUIElement(out m_exportButtonContainer, helperSettings.Self.transform, "ExportContainer", new Vector4(0, 0, helperSettings.Self.width, 45));
+            m_exportButtonContainer.autoLayout = true;
+            m_exportButtonContainer.autoLayoutPadding = new RectOffset(0, 6, 0, 0);
+            m_exportButton = UIHelperExtension.AddButton(m_exportButtonContainer, Locale.Get("K45_ACE_EXPORTDATA_TOASSETBUILDING"), OnExport);
+            KlyteMonoUtils.LimitWidthAndBox(m_exportButton, m_exportButtonContainer.width * 0.7f);
+            AddButtonInEditorRow(m_exportButton.parent, CommonsSpriteNames.K45_QuestionMark, Help_ExportToAsset, false);
+
+            KlyteMonoUtils.CreateUIElement(out m_exportButtonContainerLocal, helperSettings.Self.transform, "ExportContainerLocal", new Vector4(0, 0, helperSettings.Self.width, 45));
+            m_exportButtonContainerLocal.autoLayout = true;
+            m_exportButtonContainerLocal.autoLayoutPadding = new RectOffset(0, 6, 0, 0);
+            m_exportButtonLocal = UIHelperExtension.AddButton(m_exportButtonContainerLocal, Locale.Get("K45_ACE_EXPORTDATA_TOLOCALBUILDING"), OnExportLocal);
+            KlyteMonoUtils.LimitWidthAndBox(m_exportButtonLocal, m_exportButtonContainerLocal.width * 0.7f);
+            AddButtonInEditorRow(m_exportButtonLocal.parent, CommonsSpriteNames.K45_QuestionMark, Help_ExportLocal, false);
 
             AddLibBox<ACEBuildingRuleLib, BuildingCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
@@ -137,6 +155,8 @@ namespace Klyte.AssetColorExpander.UI
             m_pasteSettings.isVisible = false;
         }
 
+        private void Help_ExportLocal() => K45DialogControl.ShowModalHelp("General.ExportDataLocal", Locale.Get("K45_ACE_BASICTAB_EXPORTDATALOCAL"), 0);
+        private void Help_ExportToAsset() => K45DialogControl.ShowModalHelp("Building.ExportDataAsset", Locale.Get("K45_ACE_BUILDINGRULES_EXPORTDATAFORASSET"), 0);
         private void Help_DistrictFilter() => K45DialogControl.ShowModalHelp("General.DistrictFilter", Locale.Get("K45_ACE_BASICTAB_DISTRICTFILTER"), 0);
         private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Building.ColoringMode", Locale.Get("K45_ACE_BUILDINGRULES_COLORMODE"), 0);
         private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Building.TypeOfRule", Locale.Get("K45_ACE_BUILDINGRULES_RULEFILTER"), 0);
@@ -147,7 +167,7 @@ namespace Klyte.AssetColorExpander.UI
         });
         public void Start()
         {
-            m_class.items = AssetColorExpanderMod.Controller?.AllClassesBuilding?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
+            m_class.items = AssetColorExpanderMod.Controller?.ClassesCache.AllClassesBuilding?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
             ACEPanel.Instance.BuildingTab.RuleList.EventSelectionChanged += OnChangeTab;
         }
 
@@ -362,9 +382,8 @@ namespace Klyte.AssetColorExpander.UI
                 m_class.selectedValue = x.ItemClassName;
 
                 string targetAsset = x.AssetName ?? "";
-                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilter.text = entry?.Key ?? "";
-                m_lastSelection = PrefabCollection<BuildingInfo>.FindLoaded(entry?.Value ?? "");
 
                 ApplyRuleCheck(x);
 
@@ -398,10 +417,21 @@ namespace Klyte.AssetColorExpander.UI
             m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeBuilding.SERVICE_SUBSERVICE_LEVEL;
             m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ITEM_CLASS;
             m_assetFilter.parent.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ASSET_NAME;
+
+            m_exportButtonContainer.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ASSET_NAME;
+            m_exportButtonContainerLocal.isVisible = x.RuleCheckType == RuleCheckTypeBuilding.ASSET_NAME;
+
+            if (ulong.TryParse(x.AssetName?.Split('.')[0], out _))
+            {
+                m_exportButton.Enable();
+            }
+            else
+            {
+                m_exportButton.Disable();
+            }
         }
 
         private string m_clipboard;
-        private BuildingInfo m_lastSelection;
 
         private string GetRuleSerialized()
         {
@@ -462,18 +492,18 @@ namespace Klyte.AssetColorExpander.UI
 
         private void OnAssetSelectedChanged(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.BuildingsLoaded.TryGetValue(m_popup.items[sel], out string assetName))
+            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(m_popup.items[sel], out string assetName))
             {
                 x.AssetName = assetName;
-                m_lastSelection = PrefabCollection<BuildingInfo>.FindLoaded(assetName);
                 m_assetFilter.text = m_popup.items[sel];
             }
             else
             {
                 string targetAsset = x.AssetName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilter.text = entry?.Key ?? "";
             }
+            ApplyRuleCheck(x);
         });
         private void OnChangeClassFilter(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {
@@ -556,6 +586,40 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_NEUTRALS;
             }
         });
+
+        private void OnExport()
+        {
+            SafeObtain((ref BuildingCityDataRuleXml x) => FileUtils.DoInPrefabFolder(x.AssetName,
+                (folder) =>
+                {
+                    string currentDataSerial = GetRuleSerialized();
+                    BuildingAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<BuildingAssetFolderRuleXml>(currentDataSerial);
+                    var container = new ACERulesetContainer<BuildingAssetFolderRuleXml>
+                    {
+                        m_dataArray = new BuildingAssetFolderRuleXml[]
+                        {
+                           asAssetRule
+                        }
+                    };
+                    string targetData = XmlUtils.DefaultXmlSerialize(container);
+                    File.WriteAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING), targetData);
+                })
+            );
+        }
+        private void OnExportLocal()
+        {
+            SafeObtain((ref BuildingCityDataRuleXml x) =>
+                {
+                    FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
+                    string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING);
+                    string currentDataSerial = GetRuleSerialized();
+                    BuildingAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<BuildingAssetFolderRuleXml>(currentDataSerial);
+                    ACERulesetContainer<BuildingAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<BuildingAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<BuildingAssetFolderRuleXml>();
+                    container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new BuildingAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                    File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
+                }
+            );
+        }
     }
 
 }

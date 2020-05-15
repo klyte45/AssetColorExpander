@@ -2,9 +2,10 @@
 
 namespace Klyte.AssetColorExpander.XML
 {
-    public class CitizenAssetFolderRuleXml : BasicColorConfigurationXml
+    public class CitizenAssetFolderRuleXml : BasicColorConfigurationXml, IAssetNameable, IRuleCacheSource
     {
-        [XmlAttribute(AttributeName = "assetName")]
+        [XmlAttribute]
         public string AssetName { get; set; }
+        public RuleSource Source { get; set; }
     }
 }

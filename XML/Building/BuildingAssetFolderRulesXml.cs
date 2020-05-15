@@ -2,9 +2,13 @@
 
 namespace Klyte.AssetColorExpander.XML
 {
-    public class BuildingAssetFolderRuleXml : BasicColorConfigurationXml
+    [XmlRoot("BuildingColorConfig")]
+    public class BuildingAssetFolderRuleXml : BasicColorConfigurationXml, IAssetNameable,IRuleCacheSource
     {
-        [XmlAttribute(AttributeName = "assetName")]
+        [XmlAttribute("assetName")]
+        public string LegacyAssetName { set => AssetName = value; }
+        [XmlAttribute]
         public string AssetName { get; set; }
+        public RuleSource Source { get; set; }
     }
 }

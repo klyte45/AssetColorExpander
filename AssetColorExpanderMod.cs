@@ -1,4 +1,5 @@
 using ColossalFramework.Globalization;
+using ColossalFramework.UI;
 using Klyte.AssetColorExpander.UI;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Interfaces;
@@ -6,6 +7,7 @@ using Klyte.Commons.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using static Klyte.AssetColorExpander.ACELoadedDataContainer;
 
 [assembly: AssemblyVersion("0.0.0.*")]
 namespace Klyte.AssetColorExpander
@@ -18,41 +20,47 @@ namespace Klyte.AssetColorExpander
         public override string Description => "Expand the color variation of assets by type";
 
         private UIHelperExtension m_groupListing;
+        internal UIButton m_building;
+        internal UIButton m_citizen;
+        internal UIButton m_net;
+        internal UIButton m_prop;
+        internal UIButton m_vehicle;
         public override void TopSettingsUI(UIHelperExtension helper)
         {
-            m_groupListing = helper.AddGroupExtended(Locale.Get("K45_ACE_CONFIG_LOADEDCUSTOMCONFIGREPORT_TITLE"));
-            m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_BUILDINGS"), () => ShowModalReport(ACEController.CacheOrder.BUILDING));
-            m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_CITIZENS"), () => ShowModalReport(ACEController.CacheOrder.CITIZEN));
-            m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_NETWORKS"), () => ShowModalReport(ACEController.CacheOrder.NET));
-            m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_PROPS"), () => ShowModalReport(ACEController.CacheOrder.PROP_PLACED));
-            m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_VEHICLES"), () => ShowModalReport(ACEController.CacheOrder.VEHICLE));
-            m_groupListing.Self.parent.isVisible = false;
+            Instance.m_groupListing = helper.AddGroupExtended(Locale.Get("K45_ACE_CONFIG_LOADEDCUSTOMCONFIGREPORT_TITLE"));
+            Instance.m_building = Instance.m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_BUILDINGS"), () => ShowModalReport(ACEController.CacheOrder.BUILDING)) as UIButton;
+            Instance.m_citizen = Instance.m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_CITIZENS"), () => ShowModalReport(ACEController.CacheOrder.CITIZEN)) as UIButton;
+            Instance.m_net = Instance.m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_NETWORKS"), () => ShowModalReport(ACEController.CacheOrder.NET)) as UIButton;
+            Instance.m_prop = Instance.m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_PROPS"), () => ShowModalReport(ACEController.CacheOrder.PROP_PLACED)) as UIButton;
+            Instance.m_vehicle = Instance.m_groupListing.AddButton(Locale.Get("K45_ACE_CONFIG_LOADEDBUTTON_VEHICLES"), () => ShowModalReport(ACEController.CacheOrder.VEHICLE)) as UIButton;
+            Instance.m_groupListing.Self.parent.isVisible = false;
 
         }
 
         protected override void OnLevelLoadingInternal()
         {
             base.OnLevelLoadingInternal();
-            m_groupListing.Self.parent.isVisible = Controller != null;
+            Instance.m_groupListing.Self.parent.isVisible = Controller != null;
+
         }
 
-        private int itemsPerReportPage = 30;
+        private int m_itemsPerReportPage = 30;
 
         private void ShowModalReport(ACEController.CacheOrder target, int[] cachedStarts = null, int currentPage = 0)
         {
-            ACEController.FormattedReportLine[] reference = Controller.GetLoadedReport(target);
+            FormattedReportLine[] reference = Controller.LoadedConfiguration.GetLoadedReport(target);
             if (cachedStarts == null)
             {
                 var itemStarts = reference.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Level == 0).Select(x => x.First).ToList();
                 var startCacheBuilder = new List<int> { 0 };
                 for (int i = 0; i < itemStarts.Count - 1; i++)
                 {
-                    if (itemStarts[i + 1] - startCacheBuilder.Last() > itemsPerReportPage)
+                    if (itemStarts[i + 1] - startCacheBuilder.Last() > m_itemsPerReportPage)
                     {
                         startCacheBuilder.Add(itemStarts[i]);
                     }
                 }
-                if (reference.Length - startCacheBuilder.Last() > itemsPerReportPage)
+                if (reference.Length - startCacheBuilder.Last() > m_itemsPerReportPage)
                 {
                     startCacheBuilder.Add(itemStarts.Last());
                 }
@@ -87,17 +95,5 @@ namespace Klyte.AssetColorExpander
             });
 
         }
-
-
-        //private static void AddFolderButton(string filePath, UIHelperExtension helper, string localeId)
-        //{
-        //    FileInfo fileInfo = FileUtils.EnsureFolderCreation(filePath);
-        //    helper.AddLabel(Locale.Get(localeId) + ":");
-        //    var namesFilesButton = ((UIButton)helper.AddButton("/", () => ColossalFramework.Utils.OpenInFileBrowser(fileInfo.FullName)));
-        //    namesFilesButton.textColor = Color.yellow;
-        //    KlyteMonoUtils.LimitWidth(namesFilesButton, 710);
-        //    namesFilesButton.text = fileInfo.FullName + Path.DirectorySeparatorChar;
-        //}       
-
     }
 }

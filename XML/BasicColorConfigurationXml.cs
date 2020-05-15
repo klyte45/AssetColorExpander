@@ -28,4 +28,9 @@ namespace Klyte.AssetColorExpander.XML
         internal List<Color32> m_colorList = new List<Color32>();
 
     }
+
+    public interface IAssetNameable
+    {
+        string AssetName { get; }
+    }
 }

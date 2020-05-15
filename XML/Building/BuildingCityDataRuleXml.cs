@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 
 namespace Klyte.AssetColorExpander.XML
 {
+    [XmlRoot("BuildingColorConfig")]
     public class BuildingCityDataRuleXml : BasicColorConfigurationXml
     {
         [XmlAttribute]
