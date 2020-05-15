@@ -14,11 +14,11 @@ namespace Klyte.AssetColorExpander.XML
         [XmlAttribute]
         public ItemClass.Level Level { get; set; }
         [XmlAttribute]
-        public string AssetNameSelf { get; set; }
+        public string AssetName     { get; set; }
         [XmlAttribute]
-        public string AssetNameBuilding { get; set; }
+        public string BuildingName { get; set; }
         [XmlAttribute]
-        public string AssetNameNet { get; set; }
+        public string NetName { get; set; }
 
         [XmlArray("SelectedDistricts")] [XmlArrayItem("District")] public HashSet<ushort> SelectedDistricts { get; set; } = new HashSet<ushort>();
         [XmlAttribute("districtSelectionIsBlacklist")] public bool SelectedDistrictsIsBlacklist { get; set; } = true;
@@ -65,15 +65,15 @@ namespace Klyte.AssetColorExpander.XML
                     case RuleCheckTypeProp.PARENT_SERVICE_SUBSERVICE_LEVEL:
                         return (Service == ItemClass.Service.None || effectiveItemClass.m_service == Service) && effectiveItemClass.m_subService == SubService && effectiveItemClass.m_level == Level;
                     case RuleCheckTypeProp.ASSET_NAME_SELF:
-                        return propInfoName != null && propInfoName == AssetNameSelf;
+                        return propInfoName != null && propInfoName == AssetName;
                     case RuleCheckTypeProp.ASSET_NAME_BUILDING:
-                        return buildingInfoName != null && buildingInfoName == AssetNameBuilding;
+                        return buildingInfoName != null && buildingInfoName == BuildingName;
                     case RuleCheckTypeProp.ASSET_NAME_NET:
-                        return netInfoName != null && netInfoName == AssetNameNet;
+                        return netInfoName != null && netInfoName == NetName;
                     case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
-                        return propInfoName != null && propInfoName == AssetNameSelf && buildingInfoName != null && buildingInfoName == AssetNameBuilding;
+                        return propInfoName != null && propInfoName == AssetName && buildingInfoName != null && buildingInfoName == BuildingName;
                     case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
-                        return propInfoName != null && propInfoName == AssetNameSelf && netInfoName != null && netInfoName == AssetNameNet;
+                        return propInfoName != null && propInfoName == AssetName && netInfoName != null && netInfoName == NetName;
                 }
             }
             return false;

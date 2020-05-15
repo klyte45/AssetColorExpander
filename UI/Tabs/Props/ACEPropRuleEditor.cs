@@ -175,19 +175,19 @@ namespace Klyte.AssetColorExpander.UI
         private string GetCurrentSelectionName()
         {
             string name = "";
-            SafeObtain((ref PropCityDataRuleXml x) => name = x.AssetNameSelf);
+            SafeObtain((ref PropCityDataRuleXml x) => name = x.AssetName);
             return name ?? "";
         }
         private string GetCurrentSelectionNameBuilding()
         {
             string name = "";
-            SafeObtain((ref PropCityDataRuleXml x) => name = x.AssetNameBuilding);
+            SafeObtain((ref PropCityDataRuleXml x) => name = x.BuildingName);
             return name ?? "";
         }
         private string GetCurrentSelectionNameNet()
         {
             string name = "";
-            SafeObtain((ref PropCityDataRuleXml x) => name = x.AssetNameNet);
+            SafeObtain((ref PropCityDataRuleXml x) => name = x.NetName);
             return name ?? "";
         }
         #endregion
@@ -392,15 +392,15 @@ namespace Klyte.AssetColorExpander.UI
                 m_class.selectedValue = x.ItemClassName;
                 m_parentClass.selectedValue = x.ItemClassName;
 
-                string targetAsset = x.AssetNameSelf ?? "";
+                string targetAsset = x.AssetName ?? "";
                 KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilter.text = entry?.Key ?? "";
 
-                targetAsset = x.AssetNameBuilding ?? "";
+                targetAsset = x.BuildingName ?? "";
                 entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterBuilding.text = entry?.Key ?? "";
 
-                targetAsset = x.AssetNameNet ?? "";
+                targetAsset = x.NetName ?? "";
                 entry = AssetColorExpanderMod.Controller?.AssetsCache.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterNet.text = entry?.Key ?? "";
 
@@ -514,12 +514,12 @@ namespace Klyte.AssetColorExpander.UI
         {
             if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.PropsLoaded.TryGetValue(m_popup.items[sel], out string assetName))
             {
-                x.AssetNameSelf = assetName;
+                x.AssetName = assetName;
                 m_assetFilter.text = m_popup.items[sel];
             }
             else
             {
-                string targetAsset = x.AssetNameSelf ?? "";
+                string targetAsset = x.AssetName ?? "";
                 System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilter.text = entry?.Key ?? "";
             }
@@ -528,12 +528,12 @@ namespace Klyte.AssetColorExpander.UI
         {
             if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(m_popupBuilding.items[sel], out string assetName))
             {
-                x.AssetNameBuilding = assetName;
+                x.BuildingName = assetName;
                 m_assetFilterBuilding.text = m_popupBuilding.items[sel];
             }
             else
             {
-                string targetAsset = x.AssetNameBuilding ?? "";
+                string targetAsset = x.BuildingName ?? "";
                 KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterBuilding.text = entry?.Key ?? "";
             }
@@ -542,12 +542,12 @@ namespace Klyte.AssetColorExpander.UI
         {
             if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.NetsLoaded.TryGetValue(m_popupNet.items[sel], out string assetName))
             {
-                x.AssetNameNet = assetName;
+                x.NetName = assetName;
                 m_assetFilterNet.text = m_popupNet.items[sel];
             }
             else
             {
-                string targetAsset = x.AssetNameNet ?? "";
+                string targetAsset = x.NetName ?? "";
                 KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterNet.text = entry?.Key ?? "";
             }

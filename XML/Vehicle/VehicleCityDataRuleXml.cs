@@ -13,9 +13,9 @@ namespace Klyte.AssetColorExpander.XML
         [XmlAttribute]
         public ItemClass.Level Level { get; set; }
         [XmlAttribute]
-        public string AssetNameVehicle { get; set; }
+        public string AssetName { get; set; }
         [XmlAttribute]
-        public string AssetNameBuilding { get; set; }
+        public string BuildingName { get; set; }
 
         [XmlAttribute]
         public RuleCheckTypeVehicle RuleCheckType { get; set; }
