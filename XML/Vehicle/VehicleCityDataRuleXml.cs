@@ -35,10 +35,10 @@ namespace Klyte.AssetColorExpander.XML
                 case RuleCheckTypeVehicle.SERVICE_SUBSERVICE_LEVEL:
                     return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_subService == SubService && info.m_class.m_level == Level;
                 case RuleCheckTypeVehicle.ASSET_NAME_SELF:
-                    return info.name == AssetNameVehicle;
+                    return info.name == AssetName;
                 case RuleCheckTypeVehicle.ASSET_NAME_OWNER:
                     ref Vehicle vehicle = ref VehicleManager.instance.m_vehicles.m_buffer[vehicleId];
-                    return vehicle.m_sourceBuilding > 0 && BuildingManager.instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].Info.name == AssetNameBuilding;
+                    return vehicle.m_sourceBuilding > 0 && BuildingManager.instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].Info.name == BuildingName;
             }
 
             return false;
@@ -58,7 +58,7 @@ namespace Klyte.AssetColorExpander.XML
                 case RuleCheckTypeVehicle.SERVICE_SUBSERVICE_LEVEL:
                     return (Service == ItemClass.Service.None || info.m_class.m_service == Service) && info.m_class.m_subService == SubService && info.m_class.m_level == Level;
                 case RuleCheckTypeVehicle.ASSET_NAME_SELF:
-                    return info.name == AssetNameVehicle;
+                    return info.name == AssetName;
                 case RuleCheckTypeVehicle.ASSET_NAME_OWNER:
                     return false;
             }

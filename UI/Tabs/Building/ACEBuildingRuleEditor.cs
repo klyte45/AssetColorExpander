@@ -429,6 +429,14 @@ namespace Klyte.AssetColorExpander.UI
             {
                 m_exportButton.Disable();
             }
+            if (x.AssetName.IsNullOrWhiteSpace())
+            {
+                m_exportButtonLocal.Disable();
+            }
+            else
+            {
+                m_exportButtonLocal.Enable();
+            }
         }
 
         private string m_clipboard;

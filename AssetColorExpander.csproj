@@ -210,7 +210,7 @@
     <Compile Include="XML\IRuleCacheSource.cs" />
     <Compile Include="XML\Prop\PropAssetFolderRuleXml.cs" />
     <Compile Include="XML\Prop\PropCityDataRuleXml.cs" />
-    <Compile Include="XML\RuleCheckTypeProp.cs" />
+    <Compile Include="XML\Prop\RuleCheckTypeProp.cs" />
     <Compile Include="XML\RuleSource.cs" />
     <Compile Include="XML\Vehicle\BasicVehicleColorConfigurationXml.cs" />
     <Compile Include="XML\Vehicle\VehicleCityDataRuleXml.cs" />

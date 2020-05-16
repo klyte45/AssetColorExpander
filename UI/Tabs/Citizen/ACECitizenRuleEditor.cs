@@ -8,6 +8,7 @@ using Klyte.Commons.Extensors;
 using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using System;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using static Klyte.Commons.UI.DefaultEditorUILib;
@@ -38,6 +39,10 @@ namespace Klyte.AssetColorExpander.UI
         private UIDropDown m_ai;
         private UITextField m_assetFilterSelf;
         private UIListBox m_popupSelf;
+        private UIPanel m_exportButtonContainer;
+        private UIButton m_exportButton;
+        private UIPanel m_exportButtonContainerLocal;
+        private UIButton m_exportButtonLocal;
 
         private UIDropDown m_colorMode;
         private UIPanel m_listColorContainer;
@@ -86,6 +91,19 @@ namespace Klyte.AssetColorExpander.UI
             m_popupSelf.height = 290;
             m_popupSelf.width -= 20;
 
+            KlyteMonoUtils.CreateUIElement(out m_exportButtonContainer, helperSettings.Self.transform, "ExportContainer", new Vector4(0, 0, helperSettings.Self.width, 45));
+            m_exportButtonContainer.autoLayout = true;
+            m_exportButtonContainer.autoLayoutPadding = new RectOffset(0, 6, 0, 0);
+            m_exportButton = UIHelperExtension.AddButton(m_exportButtonContainer, Locale.Get("K45_ACE_EXPORTDATA_TOASSETCITIZEN"), OnExport);
+            KlyteMonoUtils.LimitWidthAndBox(m_exportButton, m_exportButtonContainer.width * 0.7f);
+            AddButtonInEditorRow(m_exportButton.parent, CommonsSpriteNames.K45_QuestionMark, Help_ExportToAsset, false);
+
+            KlyteMonoUtils.CreateUIElement(out m_exportButtonContainerLocal, helperSettings.Self.transform, "ExportContainerLocal", new Vector4(0, 0, helperSettings.Self.width, 45));
+            m_exportButtonContainerLocal.autoLayout = true;
+            m_exportButtonContainerLocal.autoLayoutPadding = new RectOffset(0, 6, 0, 0);
+            m_exportButtonLocal = UIHelperExtension.AddButton(m_exportButtonContainerLocal, Locale.Get("K45_ACE_EXPORTDATA_TOLOCALCITIZEN"), OnExportLocal);
+            KlyteMonoUtils.LimitWidthAndBox(m_exportButtonLocal, m_exportButtonContainerLocal.width * 0.7f);
+            AddButtonInEditorRow(m_exportButtonLocal.parent, CommonsSpriteNames.K45_QuestionMark, Help_ExportLocal, false);
 
             AddLibBox<ACECitizenRuleLib, CitizenCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
@@ -114,6 +132,8 @@ namespace Klyte.AssetColorExpander.UI
             m_pasteSettings.isVisible = false;
         }
 
+        private void Help_ExportLocal() => throw new NotImplementedException();
+        private void Help_ExportToAsset() => throw new NotImplementedException();
         private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Citizen.ColoringMode", Locale.Get("K45_ACE_CITIZENRULES_COLORMODE"), 0);
         private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Citizen.TypeOfRule", Locale.Get("K45_ACE_CITIZENRULES_RULEFILTER"), 0);
         private void AddColor() => SafeObtain((ref CitizenCityDataRuleXml x) =>
@@ -271,6 +291,26 @@ namespace Klyte.AssetColorExpander.UI
             m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ITEM_CLASS;
             m_assetFilterSelf.parent.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ASSET_NAME;
             m_ai.parent.isVisible =   x.RuleCheckType == RuleCheckTypeCitizen.AI;
+
+            m_exportButtonContainer.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ASSET_NAME;
+            m_exportButtonContainerLocal.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ASSET_NAME;
+
+            if (ulong.TryParse(x.AssetName?.Split('.')[0], out _))
+            {
+                m_exportButton.Enable();
+            }
+            else
+            {
+                m_exportButton.Disable();
+            }
+            if (x.AssetName.IsNullOrWhiteSpace())
+            {
+                m_exportButtonLocal.Disable();
+            }
+            else
+            {
+                m_exportButtonLocal.Enable();
+            }
         }
 
         private string m_clipboard;
@@ -336,6 +376,7 @@ namespace Klyte.AssetColorExpander.UI
                 System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.CitizensLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterSelf.text = entry?.Key ?? "";
             }
+            ApplyRuleCheck(x);
         });
 
         private void OnChangeClassFilter(int sel) => SafeObtain((ref CitizenCityDataRuleXml x) =>
@@ -427,6 +468,40 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_NEUTRALS;
             }
         });
+
+        private void OnExport()
+        {
+            SafeObtain((ref CitizenCityDataRuleXml x) => FileUtils.DoInPrefabFolder(x.AssetName,
+                (folder) =>
+                {
+                    string currentDataSerial = GetRuleSerialized();
+                    CitizenAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<CitizenAssetFolderRuleXml>(currentDataSerial);
+                    var container = new ACERulesetContainer<CitizenAssetFolderRuleXml>
+                    {
+                        m_dataArray = new CitizenAssetFolderRuleXml[]
+                        {
+                           asAssetRule
+                        }
+                    };
+                    string targetData = XmlUtils.DefaultXmlSerialize(container);
+                    File.WriteAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_CITIZEN), targetData);
+                })
+            );
+        }
+        private void OnExportLocal()
+        {
+            SafeObtain((ref CitizenCityDataRuleXml x) =>
+            {
+                FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
+                string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, ACELoadedDataContainer.DEFAULT_XML_NAME_CITIZEN);
+                string currentDataSerial = GetRuleSerialized();
+                CitizenAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<CitizenAssetFolderRuleXml>(currentDataSerial);
+                ACERulesetContainer<CitizenAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<CitizenAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<CitizenAssetFolderRuleXml>();
+                container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new CitizenAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
+            }
+            );
+        }
     }
 
 }

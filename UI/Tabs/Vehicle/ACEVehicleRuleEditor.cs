@@ -138,14 +138,14 @@ namespace Klyte.AssetColorExpander.UI
         private string GetCurrentSelectionNameSelf()
         {
             string name = "";
-            SafeObtain((ref VehicleCityDataRuleXml x) => name = x.AssetNameVehicle);
+            SafeObtain((ref VehicleCityDataRuleXml x) => name = x.AssetName);
             return name ?? "";
         }
 
         private string GetCurrentSelectionNameOwner()
         {
             string name = "";
-            SafeObtain((ref VehicleCityDataRuleXml x) => name = x.AssetNameBuilding);
+            SafeObtain((ref VehicleCityDataRuleXml x) => name = x.BuildingName);
             return name ?? "";
         }
         #endregion
@@ -244,12 +244,12 @@ namespace Klyte.AssetColorExpander.UI
                 m_level.selectedIndex = (int)x.Level;
                 m_class.selectedValue = x.ItemClassName;
 
-                string targetAsset = x.AssetNameVehicle ?? "";
+                string targetAsset = x.AssetName ?? "";
                 System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterSelf.text = entry?.Key ?? "";
 
 
-                targetAsset = x.AssetNameBuilding ?? "";
+                targetAsset = x.BuildingName ?? "";
                 entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterOwner.text = entry?.Key ?? "";
 
@@ -343,12 +343,12 @@ namespace Klyte.AssetColorExpander.UI
         {
             if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.VehiclesLoaded.TryGetValue(m_popupSelf.items[sel], out string assetName))
             {
-                x.AssetNameVehicle = assetName;
+                x.AssetName = assetName;
                 m_assetFilterSelf.text = m_popupSelf.items[sel];
             }
             else
             {
-                string targetAsset = x.AssetNameVehicle ?? "";
+                string targetAsset = x.AssetName ?? "";
                 System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterSelf.text = entry?.Key ?? "";
             }
@@ -357,12 +357,12 @@ namespace Klyte.AssetColorExpander.UI
         {
             if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(m_popupOwner.items[sel], out string assetName))
             {
-                x.AssetNameBuilding = assetName;
+                x.BuildingName = assetName;
                 m_assetFilterOwner.text = m_popupOwner.items[sel];
             }
             else
             {
-                string targetAsset = x.AssetNameBuilding ?? "";
+                string targetAsset = x.BuildingName ?? "";
                 System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
                 m_assetFilterOwner.text = entry?.Key ?? "";
             }
