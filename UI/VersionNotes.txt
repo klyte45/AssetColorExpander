@@ -1,2 +1,9 @@
-﻿ACEv1
-	-Fixed: Vehicle changing color when after parked.
+﻿Welcome to Asset Color expander!
+
+This mod allows you to expand the configurations about colors in buildings, props and vehicles. Explore the new ways of coloring the assets by reading the useful tutorials at "?" buttons in the game.
+
+Also you can export data for future use, and create generic rules for all your new savegames (or old ones without configuration) by using the Global configuration export.
+
+<color yellow>For asset makers:</color> Export the files to bundle with the asset and share the setting with the mod at Steam Workshop!
+
+Enjoy! =V
