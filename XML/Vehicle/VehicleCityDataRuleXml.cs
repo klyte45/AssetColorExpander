@@ -2,6 +2,7 @@
 
 namespace Klyte.AssetColorExpander.XML
 {
+    [XmlRoot("VehicleColorConfig")]
     public class VehicleCityDataRuleXml : BasicVehicleColorConfigurationXml
     {
         [XmlAttribute]

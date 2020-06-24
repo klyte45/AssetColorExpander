@@ -20,6 +20,7 @@ namespace Klyte.AssetColorExpander
         public const string DEFAULT_XML_NAME_BUILDING_PROPS = "k45_ace_data_buildingProps.xml";
         public const string DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL = "k45_ace_data_buildingPropsGlobal.xml";
         public const string DEFAULT_XML_NAME_BUILDING_VEHICLES = "k45_ace_data_buildingVehicles.xml";
+        public const string DEFAULT_XML_NAME_BUILDING_VEHICLES_GLOBAL = "k45_ace_data_buildingVehiclesGlobal.xml";
 
         public const string DEFAULT_XML_NAME_NET_PROPS = "k45_ace_data_netProps.xml";
         public const string DEFAULT_XML_NAME_NET_PROPS_GLOBAL = "k45_ace_data_netPropsGlobal.xml";
@@ -75,14 +76,12 @@ namespace Klyte.AssetColorExpander
         private void LoadAllLocalLibs()
         {
             LoadLocalConfiguration(m_colorConfigDataBuildings, DEFAULT_XML_NAME_BUILDING);
-            LoadLocalConfiguration(m_colorConfigDataBuildingsPropsGlobal, DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL);
-            LoadLocalConfiguration(m_colorConfigDataNetsPropsGlobal, DEFAULT_XML_NAME_NET_PROPS_GLOBAL);
             LoadLocalConfiguration(m_colorConfigDataVehicles, DEFAULT_XML_NAME_VEHICLE);
             LoadLocalConfiguration(m_colorConfigDataCitizens, DEFAULT_XML_NAME_CITIZEN);
             LoadLocalConfiguration(m_colorConfigDataProps, DEFAULT_XML_NAME_PROP);
-            LoadLocalConfiguration(m_colorConfigDataBuildingsProps, DEFAULT_XML_NAME_BUILDING_PROPS);
-            LoadLocalConfiguration(m_colorConfigDataNetsProps, DEFAULT_XML_NAME_NET_PROPS);
-            LoadLocalConfiguration(m_colorConfigDataBuildingsVehiclesGlobal, DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL);
+            LoadLocalConfiguration(m_colorConfigDataBuildingsPropsGlobal, DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL);
+            LoadLocalConfiguration(m_colorConfigDataNetsPropsGlobal, DEFAULT_XML_NAME_NET_PROPS_GLOBAL);
+            LoadLocalConfiguration(m_colorConfigDataBuildingsVehiclesGlobal, DEFAULT_XML_NAME_BUILDING_VEHICLES_GLOBAL);
         }
 
         private void LoadLocalConfiguration<T>(Dictionary<string, T> target, string file) where T : BasicColorConfigurationXml, IAssetNameable, IRuleCacheSource, new()
@@ -102,62 +101,16 @@ namespace Klyte.AssetColorExpander
             }
         }
 
-        private void LoadLocalConfiguration(Dictionary<string, Dictionary<string, PropAssetFolderRuleXml>> target, string file)
-        {
-            string path = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, file);
-            if (File.Exists(path))
-            {
-                ACERulesetContainer<PropAssetFolderRuleXml> container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(path));
-                foreach (PropAssetFolderRuleXml item in container.m_dataArray)
-                {
-                    string parentName = item.BuildingName ?? item.NetName;
-                    if (item.AssetName != null && parentName != null)
-                    {
-                        if (!target.ContainsKey(parentName))
-                        {
-                            item.Source = RuleSource.LOCAL;
-                            target[parentName] = new Dictionary<string, PropAssetFolderRuleXml>();
-                        }
-                        target[parentName][item.AssetName] = item;
-                    }
-                }
-            }
-        }
-        private void LoadLocalConfiguration(Dictionary<string, Dictionary<string, VehicleAssetFolderRuleXml>> target, string file)
-        {
-            string path = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, file);
-            if (File.Exists(path))
-            {
-                ACERulesetContainer<VehicleAssetFolderRuleXml> container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<VehicleAssetFolderRuleXml>>(File.ReadAllText(path));
-                foreach (VehicleAssetFolderRuleXml item in container.m_dataArray)
-                {
-                    string parentName = item.BuildingName;
-                    if (item.AssetName != null && parentName != null)
-                    {
-                        if (!target.ContainsKey(parentName))
-                        {
-                            item.Source = RuleSource.LOCAL;
-                            target[parentName] = new Dictionary<string, VehicleAssetFolderRuleXml>();
-                        }
-                        target[parentName][item.AssetName] = item;
-                    }
-                }
-            }
-        }
-
-
         private void LoadAllBuildingConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, BuildingInfo>>
         {
             [DEFAULT_XML_NAME_BUILDING] = LoadDescriptorsFromXml<BuildingAssetFolderRuleXml, BuildingInfo>(RegisterBuildingConfig),
             [DEFAULT_XML_NAME_BUILDING_OLD] = LoadDescriptorsFromXml<BuildingAssetFolderRuleXml, BuildingInfo>(RegisterBuildingConfig),
             [DEFAULT_XML_NAME_BUILDING_VEHICLES] = LoadDescriptorsFromXml<VehicleAssetFolderRuleXml, BuildingInfo>(RegisterBuildingVehicleConfig),
             [DEFAULT_XML_NAME_BUILDING_PROPS] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, BuildingInfo>(RegisterBuildingPropConfig),
-            [DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, BuildingInfo>(RegisterBuildingPropGlobalConfig)
         });
         private void LoadAllNetConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, NetInfo>>
         {
             [DEFAULT_XML_NAME_NET_PROPS] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, NetInfo>(RegisterNetPropConfig),
-            [DEFAULT_XML_NAME_NET_PROPS_GLOBAL] = LoadDescriptorsFromXml<PropAssetFolderRuleXml, NetInfo>(RegisterNetPropGlobalConfig)
         });
         private void LoadAllPropConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, PropInfo>>
         {
@@ -171,7 +124,7 @@ namespace Klyte.AssetColorExpander
         private void LoadAllVehiclesConfigurations() => FileUtils.ScanPrefabsFolders(new Dictionary<string, Action<FileStream, VehicleInfo>>
         {
             [DEFAULT_XML_NAME_VEHICLE] = LoadDescriptorsFromXml<VehicleAssetFolderRuleXml, VehicleInfo>(RegisterVehicleConfig),
-            [DEFAULT_XML_NAME_VEHICLE_OLD] = LoadDescriptorsFromXml<VehicleAssetFolderRuleXml, VehicleInfo>(RegisterVehicleConfig)
+            [DEFAULT_XML_NAME_VEHICLE_OLD] = LoadDescriptorsFromXml<VehicleAssetFolderRuleXml, VehicleInfo>(RegisterVehicleConfig),
         });
 
         private Action<FileStream, P> LoadDescriptorsFromXml<T, P>(Action<T, P> loadAction) where T : BasicColorConfigurationXml, new() where P : PrefabInfo
@@ -246,15 +199,7 @@ namespace Klyte.AssetColorExpander
                 m_colorConfigDataBuildingsProps[info.name][config.AssetName] = config;
             }
         }
-        private void RegisterBuildingPropGlobalConfig(PropAssetFolderRuleXml config, BuildingInfo info)
-        {
-            if (config.AssetName == null)
-            {
-                config.BuildingName = info.name;
-                config.Source = RuleSource.ASSET;
-                m_colorConfigDataBuildingsPropsGlobal[info.name] = config;
-            }
-        }
+
         private void RegisterBuildingVehicleConfig(VehicleAssetFolderRuleXml config, BuildingInfo info)
         {
             if (config.AssetName == null)
@@ -264,7 +209,6 @@ namespace Klyte.AssetColorExpander
                 m_colorConfigDataBuildingsVehiclesGlobal[info.name] = config;
             }
         }
-
 
         private void RegisterNetPropConfig(PropAssetFolderRuleXml config, NetInfo info)
         {
@@ -279,15 +223,7 @@ namespace Klyte.AssetColorExpander
                 m_colorConfigDataNetsProps[info.name][config.AssetName] = config;
             }
         }
-        private void RegisterNetPropGlobalConfig(PropAssetFolderRuleXml config, NetInfo info)
-        {
-            if (config.AssetName == null)
-            {
-                config.NetName = info.name;
-                config.Source = RuleSource.ASSET;
-                m_colorConfigDataNetsPropsGlobal[info.name] = config;
-            }
-        }
+
         #endregion
 
         private FormattedReportLine[][] m_cachedLoadedReport = new FormattedReportLine[Enum.GetValues(typeof(CacheOrder)).Length][];

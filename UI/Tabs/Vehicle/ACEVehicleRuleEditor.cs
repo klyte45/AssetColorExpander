@@ -8,6 +8,7 @@ using Klyte.Commons.Extensors;
 using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using System;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using static Klyte.Commons.UI.DefaultEditorUILib;
@@ -92,6 +93,11 @@ namespace Klyte.AssetColorExpander.UI
             m_popupOwner = ConfigureListSelectionPopupForUITextField(m_assetFilterOwner, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(text), OnAssetSelectedOwnerChanged, GetCurrentSelectionNameOwner);
             m_popupOwner.height = 290;
             m_popupOwner.width -= 20;
+
+
+            ACECommonsUI.GenerateExportButtons(helperSettings, "Vehicle",
+            out m_exportButtonContainer, out m_exportButton, OnExport,
+            out m_exportButtonContainerLocal, out m_exportButtonLocal, OnExportLocal);
 
             AddLibBox<ACEVehcileRuleLib, VehicleCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
@@ -287,9 +293,57 @@ namespace Klyte.AssetColorExpander.UI
             m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeVehicle.ITEM_CLASS;
             m_assetFilterSelf.parent.isVisible = x.RuleCheckType == RuleCheckTypeVehicle.ASSET_NAME_SELF;
             m_assetFilterOwner.parent.isVisible = x.RuleCheckType == RuleCheckTypeVehicle.ASSET_NAME_OWNER;
+
+            bool isExportableType = x.RuleCheckType == RuleCheckTypeVehicle.ASSET_NAME_OWNER
+             || x.RuleCheckType == RuleCheckTypeVehicle.ASSET_NAME_SELF;
+
+            m_exportButtonContainer.isVisible = isExportableType;
+            m_exportButtonContainerLocal.isVisible = isExportableType;
+            if (isExportableType)
+            {
+                string assetKind = "";
+                switch (x.RuleCheckType)
+                {
+                    case RuleCheckTypeVehicle.ASSET_NAME_OWNER:
+                        assetKind = "BUILDING";
+                        EnableDisableExport(x.BuildingName);
+                        break;
+                    case RuleCheckTypeVehicle.ASSET_NAME_SELF:
+                        assetKind = "VEHICLE";
+                        EnableDisableExport(x.AssetName);
+                        break;
+                }
+                m_exportButton.text = Locale.Get($"K45_ACE_EXPORTDATA_TOASSET{assetKind}");
+                m_exportButtonLocal.text = Locale.Get($"K45_ACE_EXPORTDATA_TOLOCAL{assetKind}");
+
+            }
+        }
+        private void EnableDisableExport(string refAsset)
+        {
+            if (ulong.TryParse(refAsset?.Split('.')[0], out _))
+            {
+                m_exportButton.Enable();
+            }
+            else
+            {
+                m_exportButton.Disable();
+            }
+            if (refAsset.IsNullOrWhiteSpace())
+            {
+                m_exportButtonLocal.Disable();
+            }
+            else
+            {
+                m_exportButtonLocal.Enable();
+            }
         }
 
+
         private string m_clipboard;
+        private UIPanel m_exportButtonContainer;
+        private UIPanel m_exportButtonContainerLocal;
+        private UIButton m_exportButtonLocal;
+        private UIButton m_exportButton;
 
         private string GetRuleSerialized()
         {
@@ -356,6 +410,7 @@ namespace Klyte.AssetColorExpander.UI
                         result = entry?.Key ?? "";
                     }
                     m_assetFilterSelf.text = result;
+                    ApplyRuleCheck(x);
                 });
             return result;
         }
@@ -377,6 +432,7 @@ namespace Klyte.AssetColorExpander.UI
                         result = entry?.Key ?? "";
                     }
                     m_assetFilterOwner.text = result;
+                    ApplyRuleCheck(x);
                 });
             return result;
         }
@@ -463,6 +519,82 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_NEUTRALS;
             }
         });
+
+        private void OnExport()
+        {
+            SafeObtain((ref VehicleCityDataRuleXml x) =>
+            {
+                string targetAsset = null;
+                string targetFilename = null;
+                switch (x.RuleCheckType)
+                {
+                    case RuleCheckTypeVehicle.ASSET_NAME_OWNER:
+                        targetAsset = (x.BuildingName);
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_VEHICLES;
+                        break;                    
+                    case RuleCheckTypeVehicle.ASSET_NAME_SELF:
+                        targetAsset = (x.AssetName);
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_VEHICLE;
+                        break;
+                }
+                if (targetAsset != null)
+                {
+                    FileUtils.DoInPrefabFolder(targetAsset,
+                                (folder) =>
+                                {
+                                    string targetDataSerial = GetRuleSerialized();
+                                    ACERulesetContainer<VehicleAssetFolderRuleXml> container;
+                                    if (File.Exists(Path.Combine(folder, targetFilename)))
+                                    {
+                                        try
+                                        {
+                                            container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<VehicleAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, targetFilename)));
+                                        }
+                                        catch
+                                        {
+                                            container = new ACERulesetContainer<VehicleAssetFolderRuleXml>();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        container = new ACERulesetContainer<VehicleAssetFolderRuleXml>();
+                                    }
+
+                                    VehicleAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<VehicleAssetFolderRuleXml>(targetDataSerial);
+                                    container.m_dataArray = container.m_dataArray.Where(x => x.AssetName != asAssetRule.AssetName).Union(new VehicleAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                                    string targetData = XmlUtils.DefaultXmlSerialize(container);
+                                    File.WriteAllText(Path.Combine(folder, targetFilename), targetData);
+                                });
+                }
+            });
+        }
+        private void OnExportLocal()
+        {
+            SafeObtain((ref VehicleCityDataRuleXml x) =>
+            {
+                string targetFilename = null;
+                switch (x.RuleCheckType)
+                {
+                    case RuleCheckTypeVehicle.ASSET_NAME_OWNER:
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_VEHICLES_GLOBAL;
+                        break;
+                    case RuleCheckTypeVehicle.ASSET_NAME_SELF:
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_VEHICLE;
+                        break;
+                }
+                if (targetFilename != null)
+                {
+                    FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
+                    string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, targetFilename);
+                    string currentDataSerial = GetRuleSerialized();
+                    VehicleAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<VehicleAssetFolderRuleXml>(currentDataSerial);
+                    ACERulesetContainer<VehicleAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<VehicleAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<VehicleAssetFolderRuleXml>();
+                    container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new VehicleAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                    File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
+                }
+            }
+            );
+        }
     }
 
 }

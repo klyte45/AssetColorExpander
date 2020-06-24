@@ -778,7 +778,7 @@ namespace Klyte.AssetColorExpander.UI
                                     {
                                         try
                                         {
-                                            container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING)));
+                                            container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, targetFilename)));
                                         }
                                         catch
                                         {
