@@ -9,6 +9,7 @@ using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using static Klyte.AssetColorExpander.UI.ACECommonsUI;
@@ -743,8 +744,92 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_NEUTRALS;
             }
         });
-        private void OnExportLocal() { }
-        private void OnExport() { }
+        private void OnExport()
+        {
+            SafeObtain((ref PropCityDataRuleXml x) =>
+            {
+                string targetAsset = null;
+                string targetFilename = null;
+                switch (x.RuleCheckType)
+                {
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING:
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
+                        targetAsset = (x.BuildingName);
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_PROPS;
+                        break;
+                    case RuleCheckTypeProp.ASSET_NAME_NET:
+                    case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
+                        targetAsset = (x.NetName);
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_NET_PROPS;
+                        break;
+                    case RuleCheckTypeProp.ASSET_NAME_SELF:
+                        targetAsset = (x.AssetName);
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_PROP;
+                        break;
+                }
+                if (targetAsset != null)
+                {
+                    FileUtils.DoInPrefabFolder(targetAsset,
+                                (folder) =>
+                                {
+                                    string targetDataSerial = GetRuleSerialized();
+                                    ACERulesetContainer<PropAssetFolderRuleXml> container;
+                                    if (File.Exists(Path.Combine(folder, targetFilename)))
+                                    {
+                                        try
+                                        {
+                                            container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING)));
+                                        }
+                                        catch
+                                        {
+                                            container = new ACERulesetContainer<PropAssetFolderRuleXml>();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        container = new ACERulesetContainer<PropAssetFolderRuleXml>();
+                                    }
+
+                                    PropAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<PropAssetFolderRuleXml>(targetDataSerial);
+                                    container.m_dataArray = container.m_dataArray.Where(x => x.AssetName != asAssetRule.AssetName).Union(new PropAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                                    string targetData = XmlUtils.DefaultXmlSerialize(container);
+                                    File.WriteAllText(Path.Combine(folder, targetFilename), targetData);
+                                });
+                }
+            });
+        }
+        private void OnExportLocal()
+        {
+            SafeObtain((ref PropCityDataRuleXml x) =>
+            {
+                string targetFilename = null;
+                switch (x.RuleCheckType)
+                {
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING:
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL;
+                        break;
+                    case RuleCheckTypeProp.ASSET_NAME_NET:
+                    case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_NET_PROPS_GLOBAL;
+                        break;
+                    case RuleCheckTypeProp.ASSET_NAME_SELF:
+                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_PROP;
+                        break;
+                }
+                if (targetFilename != null)
+                {
+                    FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
+                    string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, targetFilename);
+                    string currentDataSerial = GetRuleSerialized();
+                    PropAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<PropAssetFolderRuleXml>(currentDataSerial);
+                    ACERulesetContainer<PropAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<PropAssetFolderRuleXml>();
+                    container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new PropAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                    File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
+                }
+            }
+            );
+        }
     }
 
 }

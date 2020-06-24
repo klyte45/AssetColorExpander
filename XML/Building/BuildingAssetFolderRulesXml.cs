@@ -9,6 +9,7 @@ namespace Klyte.AssetColorExpander.XML
         public string LegacyAssetName { set => AssetName = value; }
         [XmlAttribute]
         public string AssetName { get; set; }
+        [XmlIgnore]
         public RuleSource Source { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 
 namespace Klyte.AssetColorExpander.XML
 {
+    [XmlRoot("PropColorConfig")]
     public class PropCityDataRuleXml : BasicColorConfigurationXml
     {
         [XmlAttribute]
