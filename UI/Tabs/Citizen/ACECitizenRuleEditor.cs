@@ -11,11 +11,11 @@ using System;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using static Klyte.AssetColorExpander.UI.ACECommonsUI;
 using static Klyte.Commons.UI.DefaultEditorUILib;
 
 namespace Klyte.AssetColorExpander.UI
 {
-
     public class ACECitizenRuleEditor : UICustomControl
     {
         public UIPanel MainContainer { get; protected set; }
@@ -87,23 +87,13 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_CITIZENRULES_ASSETSELECT"), out m_assetFilterSelf, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterSelf);
-            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterCitizensByText(m_assetFilterSelf.text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
+            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterCitizensByText(text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
             m_popupSelf.height = 290;
             m_popupSelf.width -= 20;
 
-            KlyteMonoUtils.CreateUIElement(out m_exportButtonContainer, helperSettings.Self.transform, "ExportContainer", new Vector4(0, 0, helperSettings.Self.width, 45));
-            m_exportButtonContainer.autoLayout = true;
-            m_exportButtonContainer.autoLayoutPadding = new RectOffset(0, 6, 0, 0);
-            m_exportButton = UIHelperExtension.AddButton(m_exportButtonContainer, Locale.Get("K45_ACE_EXPORTDATA_TOASSETCITIZEN"), OnExport);
-            KlyteMonoUtils.LimitWidthAndBox(m_exportButton, m_exportButtonContainer.width * 0.7f);
-            AddButtonInEditorRow(m_exportButton.parent, CommonsSpriteNames.K45_QuestionMark, Help_ExportToAsset, false);
-
-            KlyteMonoUtils.CreateUIElement(out m_exportButtonContainerLocal, helperSettings.Self.transform, "ExportContainerLocal", new Vector4(0, 0, helperSettings.Self.width, 45));
-            m_exportButtonContainerLocal.autoLayout = true;
-            m_exportButtonContainerLocal.autoLayoutPadding = new RectOffset(0, 6, 0, 0);
-            m_exportButtonLocal = UIHelperExtension.AddButton(m_exportButtonContainerLocal, Locale.Get("K45_ACE_EXPORTDATA_TOLOCALCITIZEN"), OnExportLocal);
-            KlyteMonoUtils.LimitWidthAndBox(m_exportButtonLocal, m_exportButtonContainerLocal.width * 0.7f);
-            AddButtonInEditorRow(m_exportButtonLocal.parent, CommonsSpriteNames.K45_QuestionMark, Help_ExportLocal, false);
+            GenerateExportButtons(helperSettings, "Citizen",
+            out m_exportButtonContainer, out m_exportButton, OnExport,
+            out m_exportButtonContainerLocal, out m_exportButtonLocal, OnExportLocal);
 
             AddLibBox<ACECitizenRuleLib, CitizenCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
@@ -132,8 +122,7 @@ namespace Klyte.AssetColorExpander.UI
             m_pasteSettings.isVisible = false;
         }
 
-        private void Help_ExportLocal() => throw new NotImplementedException();
-        private void Help_ExportToAsset() => throw new NotImplementedException();
+
         private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Citizen.ColoringMode", Locale.Get("K45_ACE_CITIZENRULES_COLORMODE"), 0);
         private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Citizen.TypeOfRule", Locale.Get("K45_ACE_CITIZENRULES_RULEFILTER"), 0);
         private void AddColor() => SafeObtain((ref CitizenCityDataRuleXml x) =>
@@ -290,7 +279,7 @@ namespace Klyte.AssetColorExpander.UI
             m_level.parent.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.SERVICE_LEVEL || x.RuleCheckType == RuleCheckTypeCitizen.SERVICE_SUBSERVICE_LEVEL;
             m_class.parent.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ITEM_CLASS;
             m_assetFilterSelf.parent.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ASSET_NAME;
-            m_ai.parent.isVisible =   x.RuleCheckType == RuleCheckTypeCitizen.AI;
+            m_ai.parent.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.AI;
 
             m_exportButtonContainer.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ASSET_NAME;
             m_exportButtonContainerLocal.isVisible = x.RuleCheckType == RuleCheckTypeCitizen.ASSET_NAME;
@@ -363,21 +352,27 @@ namespace Klyte.AssetColorExpander.UI
         });
 
 
-        private void OnAssetSelectedSelfChanged(int sel) => SafeObtain((ref CitizenCityDataRuleXml x) =>
+        private string OnAssetSelectedSelfChanged(int sel, string[] options)
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.CitizensLoaded.TryGetValue(m_popupSelf.items[sel], out string assetName))
-            {
-                x.AssetName = assetName;
-                m_assetFilterSelf.text = m_popupSelf.items[sel];
-            }
-            else
-            {
-                string targetAsset = x.AssetName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.CitizensLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilterSelf.text = entry?.Key ?? "";
-            }
-            ApplyRuleCheck(x);
-        });
+            string result = "";
+            SafeObtain((ref CitizenCityDataRuleXml x) =>
+                {
+                    if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.CitizensLoaded.TryGetValue(options[sel], out string assetName))
+                    {
+                        x.AssetName = assetName;
+                        result = options[sel];
+                    }
+                    else
+                    {
+                        string targetAsset = x.AssetName ?? "";
+                        System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.CitizensLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                        result = entry?.Key ?? "";
+                    }
+                    m_assetFilterSelf.text = result;
+                    ApplyRuleCheck(x);
+                });
+            return result;
+        }
 
         private void OnChangeClassFilter(int sel) => SafeObtain((ref CitizenCityDataRuleXml x) =>
         {

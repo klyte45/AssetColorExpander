@@ -83,13 +83,13 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_VEHICLERULES_ASSETSELECTSELF"), out m_assetFilterSelf, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterSelf);
-            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterVehiclesByText(m_assetFilterSelf.text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
+            m_popupSelf = ConfigureListSelectionPopupForUITextField(m_assetFilterSelf, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterVehiclesByText(text), OnAssetSelectedSelfChanged, GetCurrentSelectionNameSelf);
             m_popupSelf.height = 290;
             m_popupSelf.width -= 20;
             AddTextField(Locale.Get("K45_ACE_VEHICLERULES_ASSETSELECTOWNER"), out m_assetFilterOwner, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterOwner);
-            m_popupOwner = ConfigureListSelectionPopupForUITextField(m_assetFilterOwner, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(m_assetFilterOwner.text), OnAssetSelectedOwnerChanged, GetCurrentSelectionNameOwner);
+            m_popupOwner = ConfigureListSelectionPopupForUITextField(m_assetFilterOwner, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(text), OnAssetSelectedOwnerChanged, GetCurrentSelectionNameOwner);
             m_popupOwner.height = 290;
             m_popupOwner.width -= 20;
 
@@ -339,34 +339,48 @@ namespace Klyte.AssetColorExpander.UI
         });
 
 
-        private void OnAssetSelectedSelfChanged(int sel) => SafeObtain((ref VehicleCityDataRuleXml x) =>
+        private string OnAssetSelectedSelfChanged(int sel, string[] options)
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.VehiclesLoaded.TryGetValue(m_popupSelf.items[sel], out string assetName))
-            {
-                x.AssetName = assetName;
-                m_assetFilterSelf.text = m_popupSelf.items[sel];
-            }
-            else
-            {
-                string targetAsset = x.AssetName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilterSelf.text = entry?.Key ?? "";
-            }
-        });
-        private void OnAssetSelectedOwnerChanged(int sel) => SafeObtain((ref VehicleCityDataRuleXml x) =>
+            string result = "";
+            SafeObtain((ref VehicleCityDataRuleXml x) =>
+                {
+                    if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.VehiclesLoaded.TryGetValue(options[sel], out string assetName))
+                    {
+                        x.AssetName = assetName;
+                        result = options[sel];
+                    }
+                    else
+                    {
+                        string targetAsset = x.AssetName ?? "";
+                        System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.VehiclesLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                        result = entry?.Key ?? "";
+                    }
+                    m_assetFilterSelf.text = result;
+                });
+            return result;
+        }
+
+        private string OnAssetSelectedOwnerChanged(int sel, string[] options)
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(m_popupOwner.items[sel], out string assetName))
-            {
-                x.BuildingName = assetName;
-                m_assetFilterOwner.text = m_popupOwner.items[sel];
-            }
-            else
-            {
-                string targetAsset = x.BuildingName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilterOwner.text = entry?.Key ?? "";
-            }
-        });
+            string result = "";
+            SafeObtain((ref VehicleCityDataRuleXml x) =>
+                {
+                    if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(options[sel], out string assetName))
+                    {
+                        x.BuildingName = assetName;
+                        result = options[sel];
+                    }
+                    else
+                    {
+                        string targetAsset = x.BuildingName ?? "";
+                        System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                        result = entry?.Key ?? "";
+                    }
+                    m_assetFilterOwner.text = result;
+                });
+            return result;
+        }
+
         private void OnAllowWagonDifferentColors(bool isChecked) => SafeObtain((ref VehicleCityDataRuleXml x) => x.AllowDifferentColorsOnWagons = isChecked);
         private void OnChangeClassFilter(int sel) => SafeObtain((ref VehicleCityDataRuleXml x) =>
         {

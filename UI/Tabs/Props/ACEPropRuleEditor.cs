@@ -11,7 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static Klyte.AssetColorExpander.UI.ACECommonsUI;
 using static Klyte.Commons.UI.DefaultEditorUILib;
+
 
 namespace Klyte.AssetColorExpander.UI
 {
@@ -62,6 +64,13 @@ namespace Klyte.AssetColorExpander.UI
         private UIScrollablePanel m_districtList;
         private UITemplateList<UIPanel> m_checkboxTemplateListDistrict;
 
+        private string m_clipboard;
+
+        private UIPanel m_exportButtonContainer;
+        private UIButton m_exportButton;
+        private UIPanel m_exportButtonContainerLocal;
+        private UIButton m_exportButtonLocal;
+
 
 
         public void Awake()
@@ -97,23 +106,27 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT_BUILDING"), out m_assetFilterBuilding, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterBuilding);
-            m_popupBuilding = ConfigureListSelectionPopupForUITextField(m_assetFilterBuilding, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(m_assetFilterBuilding.text), OnAssetSelectedBuildingChanged, GetCurrentSelectionNameBuilding);
+            m_popupBuilding = ConfigureListSelectionPopupForUITextField(m_assetFilterBuilding, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(text), OnAssetSelectedBuildingChanged, GetCurrentSelectionNameBuilding);
             m_popupBuilding.height = 290;
             m_popupBuilding.width -= 20;
 
             AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT_NET"), out m_assetFilterNet, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterNet);
-            m_popupNet = ConfigureListSelectionPopupForUITextField(m_assetFilterNet, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterNetsByText(m_assetFilterNet.text), OnAssetSelectedNetChanged, GetCurrentSelectionNameNet);
+            m_popupNet = ConfigureListSelectionPopupForUITextField(m_assetFilterNet, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterNetsByText(text), OnAssetSelectedNetChanged, GetCurrentSelectionNameNet);
             m_popupNet.height = 290;
             m_popupNet.width -= 20;
 
             AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
-            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, () => AssetColorExpanderMod.Controller?.AssetsCache.FilterPropsByText(m_assetFilter.text), OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterPropsByText(text), OnAssetSelectedChanged, GetCurrentSelectionName);
             m_popup.height = 290;
             m_popup.width -= 20;
+
+            GenerateExportButtons(helperSettings, "Building",
+            out m_exportButtonContainer, out m_exportButton, OnExport,
+            out m_exportButtonContainerLocal, out m_exportButtonLocal, OnExportLocal);
 
             AddLibBox<ACEPropRuleLib, PropCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
@@ -155,7 +168,6 @@ namespace Klyte.AssetColorExpander.UI
             MainContainer.isVisible = false;
             m_pasteSettings.isVisible = false;
         }
-
         private void Help_DistrictFilter() => K45DialogControl.ShowModalHelp("General.DistrictFilter", Locale.Get("K45_ACE_PROPRULES_DISTRICTFILTER"), 0);
         private void Help_ColorMode() => K45DialogControl.ShowModalHelp("Prop.ColoringMode", Locale.Get("K45_ACE_PROPRULES_COLORMODE"), 0);
         private void Help_RuleFilter() => K45DialogControl.ShowModalHelp("Prop.TypeOfRule", Locale.Get("K45_ACE_PROPRULES_RULEFILTER"), 0);
@@ -163,7 +175,7 @@ namespace Klyte.AssetColorExpander.UI
         {
             x.m_colorList.Add(Color.white);
             UpdateColorList(ref x);
-        }); 
+        });
         public void Start()
         {
             m_class.items = AssetColorExpanderMod.Controller?.ClassesCache.AllClassesProp?.Keys?.Select(x => x.name)?.OrderBy(x => x)?.ToArray() ?? new string[0];
@@ -449,9 +461,67 @@ namespace Klyte.AssetColorExpander.UI
             m_assetFilterNet.parent.isVisible = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET_SELF;
 
             m_popup.height = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET_SELF ? 250 : 290;
+
+            /*
+             *     private UIPanel m_exportButtonContainer;
+        private UIButton m_exportButton;
+        private UIPanel m_exportButtonContainerLocal;
+        private UIButton m_exportButtonLocal;
+             * **/
+
+            bool isExportableType = x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING
+                || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF
+                || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET
+                || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_NET_SELF
+                || x.RuleCheckType == RuleCheckTypeProp.ASSET_NAME_SELF;
+
+            m_exportButtonContainer.isVisible = isExportableType;
+            m_exportButtonContainerLocal.isVisible = isExportableType;
+            if (isExportableType)
+            {
+                string assetKind = "";
+                switch (x.RuleCheckType)
+                {
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING:
+                    case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
+                        assetKind = "BUILDING";
+                        EnableDisableExport(x.BuildingName);
+                        break;
+                    case RuleCheckTypeProp.ASSET_NAME_NET:
+                    case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
+                        assetKind = "NET";
+                        EnableDisableExport(x.NetName);
+                        break;
+                    case RuleCheckTypeProp.ASSET_NAME_SELF:
+                        assetKind = "PROP";
+                        EnableDisableExport(x.AssetName);
+                        break;
+                }
+                m_exportButton.text = Locale.Get($"K45_ACE_EXPORTDATA_TOASSET{assetKind}");
+                m_exportButtonLocal.text = Locale.Get($"K45_ACE_EXPORTDATA_TOLOCAL{assetKind}");
+
+            }
         }
 
-        private string m_clipboard;
+        private void EnableDisableExport(string refAsset)
+        {
+            if (ulong.TryParse(refAsset?.Split('.')[0], out _))
+            {
+                m_exportButton.Enable();
+            }
+            else
+            {
+                m_exportButton.Disable();
+            }
+            if (refAsset.IsNullOrWhiteSpace())
+            {
+                m_exportButtonLocal.Disable();
+            }
+            else
+            {
+                m_exportButtonLocal.Enable();
+            }
+        }
 
         private string GetRuleSerialized()
         {
@@ -510,48 +580,72 @@ namespace Klyte.AssetColorExpander.UI
         });
 
 
-        private void OnAssetSelectedChanged(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
+        private string OnAssetSelectedChanged(int sel, string[] options)
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.PropsLoaded.TryGetValue(m_popup.items[sel], out string assetName))
-            {
-                x.AssetName = assetName;
-                m_assetFilter.text = m_popup.items[sel];
-            }
-            else
-            {
-                string targetAsset = x.AssetName ?? "";
-                System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilter.text = entry?.Key ?? "";
-            }
-        });
-        private void OnAssetSelectedBuildingChanged(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
+            string result = "";
+            SafeObtain((ref PropCityDataRuleXml x) =>
+                    {
+                        if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.PropsLoaded.TryGetValue(options[sel], out string assetName))
+                        {
+                            x.AssetName = assetName;
+                            result = m_popup.items[sel];
+                        }
+                        else
+                        {
+                            string targetAsset = x.AssetName ?? "";
+                            System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                            result = entry?.Key ?? "";
+                        }
+                        m_assetFilter.text = result;
+                        ApplyRuleCheck(x);
+                    });
+            return result;
+        }
+
+        private string OnAssetSelectedBuildingChanged(int sel, string[] options)
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(m_popupBuilding.items[sel], out string assetName))
-            {
-                x.BuildingName = assetName;
-                m_assetFilterBuilding.text = m_popupBuilding.items[sel];
-            }
-            else
-            {
-                string targetAsset = x.BuildingName ?? "";
-                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilterBuilding.text = entry?.Key ?? "";
-            }
-        });
-        private void OnAssetSelectedNetChanged(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
+
+            string result = "";
+            SafeObtain((ref PropCityDataRuleXml x) =>
+                    {
+                        if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(options[sel], out string assetName))
+                        {
+                            x.BuildingName = assetName;
+                            result = m_popupBuilding.items[sel];
+                        }
+                        else
+                        {
+                            string targetAsset = x.BuildingName ?? "";
+                            KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                            result = entry?.Key ?? "";
+                        }
+                        m_assetFilterBuilding.text = result;
+                        ApplyRuleCheck(x);
+                    });
+            return result;
+        }
+
+        private string OnAssetSelectedNetChanged(int sel, string[] options)
         {
-            if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.NetsLoaded.TryGetValue(m_popupNet.items[sel], out string assetName))
-            {
-                x.NetName = assetName;
-                m_assetFilterNet.text = m_popupNet.items[sel];
-            }
-            else
-            {
-                string targetAsset = x.NetName ?? "";
-                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilterNet.text = entry?.Key ?? "";
-            }
-        });
+            string result = "";
+            SafeObtain((ref PropCityDataRuleXml x) =>
+                {
+                    if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.NetsLoaded.TryGetValue(options[sel], out string assetName))
+                    {
+                        x.NetName = assetName;
+                        result = m_popupNet.items[sel];
+                    }
+                    else
+                    {
+                        string targetAsset = x.NetName ?? "";
+                        KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
+                        result = entry?.Key ?? "";
+                    }
+                    m_assetFilterNet.text = result;
+                    ApplyRuleCheck(x);
+                });
+            return result;
+        }
 
         private void OnChangeClassFilter(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
@@ -649,6 +743,8 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_NEUTRALS;
             }
         });
+        private void OnExportLocal() { }
+        private void OnExport() { }
     }
 
 }
