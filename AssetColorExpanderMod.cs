@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using static Klyte.AssetColorExpander.ACELoadedDataContainer;
 
-[assembly: AssemblyVersion("1.0.0.1")]
+[assembly: AssemblyVersion("1.0.0.2")]
 namespace Klyte.AssetColorExpander
 {
     public class AssetColorExpanderMod : BasicIUserMod<AssetColorExpanderMod, ACEController, ACEPanel>

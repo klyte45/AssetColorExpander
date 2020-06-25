@@ -184,7 +184,7 @@ namespace Klyte.AssetColorExpander
 
         public static Color PreGetColorNetProps(PropInfo info, ref Randomizer randomizer, ref NetLane netLane, ushort segmentId, uint laneId, NetInfo.Lane laneInfo, int propId, float position)
         {
-            if (RulesUpdatedNet[laneId] == null)
+            if (RulesUpdatedNet[laneId] == null || RulesUpdatedNet[laneId].Length != (laneInfo.m_laneProps?.m_props?.Length ?? 0))
             {
                 int propCount = laneInfo.m_laneProps?.m_props?.Length ?? 0;
                 RulesUpdatedNet[laneId] = new bool[propCount][];
@@ -194,7 +194,6 @@ namespace Klyte.AssetColorExpander
                     RulesUpdatedNet[laneId][j] = new bool[8];
                     ColorCacheNet[laneId][j] = new Color?[8];
                 }
-
             }
             NetInfo netInfo = NetManager.instance.m_segments.m_buffer[segmentId].Info;
             int idx = Mathf.Min(7, Mathf.FloorToInt(position * 8));
