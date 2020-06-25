@@ -146,7 +146,7 @@ namespace Klyte.AssetColorExpander
             return instrList;
         }
 
-         
+
         public const uint BUILDINGS_OFFSET_SEED = PropManager.MAX_PROP_COUNT;
         public const uint NETS_OFFSET_SEED = PropManager.MAX_PROP_COUNT + (BuildingManager.MAX_BUILDING_COUNT << 8);
 
@@ -161,13 +161,21 @@ namespace Klyte.AssetColorExpander
             }
             if (i >= RulesUpdatedBuilding[buildingId].Length)
             {
-                LogUtils.DoWarnLog($"INVALID PROP IDX({i}) FOR BUILDING {buildingId} ({ai.m_info} - PROPS={ai.m_info.m_props.Length})");
-                return default;
+                if (ai.m_info.m_props.Length != RulesUpdatedBuilding[buildingId]?.Length)
+                {
+                    RulesUpdatedBuilding[buildingId] = new bool[ai.m_info.m_props.Length];
+                }
+                if (ai.m_info.m_props.Length != ColorCacheBuilding[buildingId]?.Length)
+                {
+                    ColorCacheBuilding[buildingId] = new Color?[ai.m_info.m_props.Length];
+                }
+                if (i >= RulesUpdatedBuilding[buildingId].Length)
+                {
+                    LogUtils.DoWarnLog($"INVALID PROP IDX({i}) FOR BUILDING {buildingId} ({ai.m_info} - PROPS={ai.m_info.m_props.Length})");
+                    return default;
+                }
             }
-            else
-            {
-                return PreGetColor(ref randomizer, (uint)(BUILDINGS_OFFSET_SEED + (buildingId << 8) + i), info, ai.m_info.m_class, ai.m_info, null, data.m_position, ref ColorCacheBuilding[buildingId][i], ref RulesUpdatedBuilding[buildingId][i]);
-            }
+            return PreGetColor(ref randomizer, (uint)(BUILDINGS_OFFSET_SEED + (buildingId << 8) + i), info, ai.m_info.m_class, ai.m_info, null, data.m_position, ref ColorCacheBuilding[buildingId][i], ref RulesUpdatedBuilding[buildingId][i]);
         }
 
 

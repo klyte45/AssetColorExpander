@@ -7,3 +7,6 @@ Also you can export data for future use, and create generic rules for all your n
 <color yellow>For asset makers:</color> Export the files to bundle with the asset and share the setting with the mod at Steam Workshop!
 
 Enjoy! =V
+
+
+<color yellow>Update r1:</color> Fixed some props in buildings not getting the right color (and spamming the game logs)
