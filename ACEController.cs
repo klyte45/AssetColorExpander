@@ -62,10 +62,10 @@ namespace Klyte.AssetColorExpander
         }
         public void CleanCacheVehicle()
         {
-            UpdatedRules[(int)CacheOrder.VEHICLE] = new bool[VehicleManager.MAX_VEHICLE_COUNT];
-            UpdatedRules[(int)CacheOrder.PARKED_VEHICLE] = new bool[VehicleManager.MAX_PARKED_COUNT];
-            CachedColor[(int)CacheOrder.VEHICLE] = new Color?[VehicleManager.MAX_VEHICLE_COUNT];
-            CachedColor[(int)CacheOrder.PARKED_VEHICLE] = new Color?[VehicleManager.MAX_PARKED_COUNT];
+            UpdatedRules[(int)CacheOrder.VEHICLE] = new bool[VehicleManager.instance.m_vehicles.m_size];
+            UpdatedRules[(int)CacheOrder.PARKED_VEHICLE] = new bool[VehicleManager.instance.m_parkedVehicles.m_size];
+            CachedColor[(int)CacheOrder.VEHICLE] = new Color?[VehicleManager.instance.m_vehicles.m_size];
+            CachedColor[(int)CacheOrder.PARKED_VEHICLE] = new Color?[VehicleManager.instance.m_parkedVehicles.m_size];
         }
 
         public void CleanCacheBuilding()
