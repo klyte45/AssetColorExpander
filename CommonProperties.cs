@@ -1,12 +1,15 @@
-using Klyte.BuildingColorExpander;
+using Klyte.AssetColorExpander;
 
 namespace Klyte.Commons
 {
     public static class CommonProperties
     {
-        public static bool DebugMode => BuildingColorExpanderMod.DebugMode;
-        public static string Version => BuildingColorExpanderMod.Version;
-        public static string ModName => BuildingColorExpanderMod.Instance.SimpleName;
-        public static object Acronym => "BCE";
+        public static bool DebugMode => AssetColorExpanderMod.DebugMode;
+        public static string Version => AssetColorExpanderMod.Version;
+        public static string ModName => AssetColorExpanderMod.Instance.SimpleName;
+        public static string Acronym => "ACE";
+        public static string ModRootFolder => ACEController.FOLDER_PATH;
+        public static string ModIcon => AssetColorExpanderMod.Instance.IconName; 
+        public static string ModDllRootFolder => AssetColorExpanderMod.RootFolder;
     }
 }

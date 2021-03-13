@@ -1,0 +1,368 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{19B7EAF1-8938-432C-8D6A-7975D27755F1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Klyte</RootNamespace>
+    <AssemblyName>AssetColorExpander</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <ConsolePause>False</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="xcopy /Y &quot;bin\Debug\${ProjectName}.dll&quot; &quot;J:\SteamLibrary\steamapps\workshop\content\255710\524088211\&quot;" workingdir="${ProjectDir}" externalConsole="True" />
+      </CustomCommands>
+    </CustomCommands>
+    <CodeAnalysisRuleSet>..\TransportLinesManager\TransportLinesManager.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>BasicCorrectnessRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <Optimize>true</Optimize>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="ACEAssetCache.cs" />
+    <Compile Include="ACEClassesCache.cs" />
+    <Compile Include="ACEController.cs" />
+    <Compile Include="ACELoadedDataContainer.cs" />
+    <Compile Include="commons\Extensors\Redirector.cs" />
+    <Compile Include="commons\Extensors\UI\CheckboxOrdernatedList.cs" />
+    <Compile Include="commons\Extensors\UI\NumberedColorList.cs" />
+    <Compile Include="commons\Extensors\UI\TextList.cs" />
+    <Compile Include="commons\Extensors\UI\UIHelperExtended.cs" />
+    <Compile Include="commons\Extensors\UI\UITabstripAutoResize.cs" />
+    <Compile Include="commons\Interfaces\BaseController.cs" />
+    <Compile Include="commons\Interfaces\BasicIUserMod.cs" />
+    <Compile Include="commons\Interfaces\BasicIUserModSimplified.cs" />
+    <Compile Include="commons\Interfaces\BasicKPanel.cs" />
+    <Compile Include="commons\Interfaces\IEnumerableIndex.cs" />
+    <Compile Include="commons\Interfaces\IFontConfigContainer.cs" />
+    <Compile Include="commons\Interfaces\IIdentifiable.cs" />
+    <Compile Include="commons\Interfaces\ILibable.cs" />
+    <Compile Include="commons\Interfaces\ILibableAsContainer.cs" />
+    <Compile Include="commons\Interfaces\IPropColorContainer.cs" />
+    <Compile Include="commons\Interfaces\ITimeable.cs" />
+    <Compile Include="commons\Interfaces\IViewStartActions.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ConfigWarehouseBase.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\DataExtensorBase.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensionInterface2LevelIntImpl.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceDictionaryByEnumImpl.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceDictionaryByUintImpl.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceDictionaryStructValSimplImpl.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceListImpl .cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceSingleImpl.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensorContainer.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\IDataExtensor.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\IDataExtensorLegacy.cs" />
+    <Compile Include="commons\Libraries\BasicLib.cs" />
+    <Compile Include="commons\Libraries\LibBaseData.cs" />
+    <Compile Include="commons\Libraries\LibBaseFile.cs" />
+    <Compile Include="commons\Redirectors\UIDynamicFontRendererRedirector.cs" />
+    <Compile Include="commons\Redirectors\UIDynamicPanelsRedirector.cs" />
+    <Compile Include="commons\Redirectors\UIViewRedirector.cs" />
+    <Compile Include="commons\Tools\BasicBuildingTool.cs" />
+    <Compile Include="commons\Tools\BasicNetTool.cs" />
+    <Compile Include="commons\UI\AVOPreviewRenderer.cs" />
+    <Compile Include="commons\UI\BasicRulesList.cs" />
+    <Compile Include="commons\UI\DefaultEditorUILib.cs" />
+    <Compile Include="commons\UI\i18n\KlyteLocaleManager.cs" />
+    <Compile Include="commons\UI\K45DialogControl.cs" />
+    <Compile Include="commons\UI\SpriteNames\CommonsSpriteNames.cs" />
+    <Compile Include="commons\UI\SpriteNames\LineIconSpriteNames.cs" />
+    <Compile Include="commons\UI\TLMAgesChartPanel.cs" />
+    <Compile Include="commons\UI\TLMWorkersChartPanel.cs" />
+    <Compile Include="commons\UI\UIRadialChartExtended.cs" />
+    <Compile Include="commons\Utils\BuildingUtils.cs" />
+    <Compile Include="commons\Utils\DistrictUtils.cs" />
+    <Compile Include="commons\Utils\FileUtils.cs" />
+    <Compile Include="commons\Utils\GeneralUtils.cs" />
+    <Compile Include="commons\Utils\KlyteMathUtils.cs" />
+    <Compile Include="commons\Utils\KlyteMonoUtils.cs" />
+    <Compile Include="commons\Utils\KlyteResourceLoader.cs" />
+    <Compile Include="commons\Utils\LogUtils.cs" />
+    <Compile Include="commons\Utils\MapUtils.cs" />
+    <Compile Include="commons\Utils\NumberingUtils.cs" />
+    <Compile Include="commons\Utils\PastelConfig.cs" />
+    <Compile Include="commons\Utils\PluginUtils.cs" />
+    <Compile Include="commons\Utils\PrefabUtils.cs" />
+    <Compile Include="commons\Utils\RandomPastelColorGenerator.cs" />
+    <Compile Include="commons\Utils\ReflectionUtils.cs" />
+    <Compile Include="commons\Utils\RoadSearchUtils.cs" />
+    <Compile Include="commons\Utils\SegmentUtils.cs" />
+    <Compile Include="commons\Utils\SerializationUtils.cs" />
+    <Compile Include="commons\Utils\SortingUtils.cs" />
+    <Compile Include="commons\Utils\StopSearchUtils.cs" />
+    <Compile Include="commons\Utils\StructExtensions\ColorExtensions.cs" />
+    <Compile Include="commons\Utils\StructExtensions\Int32Extensions.cs" />
+    <Compile Include="commons\Utils\StructExtensions\NetSegmentExtensions.cs" />
+    <Compile Include="commons\Utils\StructExtensions\PathUnitExtensions.cs" />
+    <Compile Include="commons\Utils\StructExtensions\StringExtensions.cs" />
+    <Compile Include="commons\Utils\StructExtensions\Vector2Extensions.cs" />
+    <Compile Include="commons\Utils\StructExtensions\Vector3Extensions.cs" />
+    <Compile Include="commons\Utils\TabCommons.cs" />
+    <Compile Include="commons\Utils\TextureAtlasUtils.cs" />
+    <Compile Include="commons\Utils\TextureFilter.cs" />
+    <Compile Include="commons\Utils\TextureRenderUtils.cs" />
+    <Compile Include="commons\Utils\TextureScaler.cs" />
+    <Compile Include="commons\Utils\TextUtils.cs" />
+    <Compile Include="commons\Utils\UITemplateUtils.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\CardinalPoint .cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\ColorList.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\CoroutineWithData.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\EntryStructValueContainerStructVal.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\LibableList.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\MutableTuple.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\NonSequentialList.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\NumberArrays.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\PriorityQueue.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\Range.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\SimpleEnumerableList.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\SimpleNonSequentialList.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\SimpleXmlDictionary.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\SimpleXmlDictionaryStructVal.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\SimpleXmlHashSet.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\SimpleXmlList.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\TimeableList.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\Tuple.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\VectorsXml.cs" />
+    <Compile Include="commons\Utils\VehicleUtils.cs" />
+    <Compile Include="commons\Utils\XmlUtils.cs" />
+    <Compile Include="commons\Utils\ZipUtils.cs" />
+    <Compile Include="Data\ACEPropConfigRulesData.cs" />
+    <Compile Include="Data\ACECitizenConfigRulesData.cs" />
+    <Compile Include="Data\ACEVehicleConfigRulesData.cs" />
+    <Compile Include="Libraries\ACEPropRuleLib.cs" />
+    <Compile Include="Libraries\ACECitizenRuleLib.cs" />
+    <Compile Include="Libraries\ACEPropRulesetLib.cs" />
+    <Compile Include="Libraries\ACECitizenRulesetLib.cs" />
+    <Compile Include="Libraries\ACEVehcileRuleLib.cs" />
+    <Compile Include="Libraries\ACEVehicleRulesetLib.cs" />
+    <Compile Include="Overrides\ACENetsOverrides.cs" />
+    <Compile Include="Overrides\ACEPropPlacedOverrides.cs" />
+    <Compile Include="Overrides\ACECitizenOverrides.cs" />
+    <Compile Include="Overrides\ACEColorGenUtils.cs" />
+    <Compile Include="Overrides\ACEVehicleOverrides.cs" />
+    <Compile Include="Overrides\ACEBuildingOverrides.cs" />
+    <Compile Include="Data\ACEBuildingConfigRulesData.cs" />
+    <Compile Include="Libraries\ACEBuildingRuleLib.cs" />
+    <Compile Include="Libraries\ACEBuildingRulesetLib.cs" />
+    <Compile Include="UI\ACEBasicUIController.cs" />
+    <Compile Include="UI\Tabs\Building\ACEBuildingController.cs" />
+    <Compile Include="UI\ACEPanel.cs" />
+    <Compile Include="CommonProperties.cs" />
+    <Compile Include="AssetColorExpanderMod.cs" />
+    <Compile Include="UI\Tabs\Building\ACEBuildingRulesList.cs" />
+    <Compile Include="UI\Tabs\Building\ACEBuildingRuleEditor.cs" />
+    <Compile Include="UI\Tabs\Citizen\ACECitizenRulesList.cs" />
+    <Compile Include="UI\Tabs\Citizen\ACECitizenController.cs" />
+    <Compile Include="UI\Tabs\Citizen\ACECitizenRuleEditor.cs" />
+    <Compile Include="UI\ACECommonsUI.cs" />
+    <Compile Include="UI\Tabs\Props\ACEPropController.cs" />
+    <Compile Include="UI\Tabs\Props\ACEPropRuleEditor.cs" />
+    <Compile Include="UI\Tabs\Props\ACEPropRulesList.cs" />
+    <Compile Include="UI\Tabs\Vehicle\ACEVehicleController.cs" />
+    <Compile Include="UI\Tabs\Vehicle\ACEVehicleRuleEditor.cs" />
+    <Compile Include="UI\Tabs\Vehicle\ACEVehicleRulesList.cs" />
+    <Compile Include="XML\Building\BuildingAssetFolderRulesXml.cs" />
+    <Compile Include="XML\ACERulesetContainer.cs" />
+    <Compile Include="XML\Building\BuildingCityDataRuleXml.cs" />
+    <Compile Include="XML\Citizen\RuleCheckTypeCitizen.cs" />
+    <Compile Include="XML\Citizen\CitizenAssetFolderRuleXml.cs" />
+    <Compile Include="XML\Citizen\CitizenCityDataRuleXml.cs" />
+    <Compile Include="XML\DistrictRestrictionOrder.cs" />
+    <Compile Include="XML\BasicColorConfigurationXml.cs" />
+    <Compile Include="XML\ColoringMode.cs" />
+    <Compile Include="XML\Building\RuleCheckTypeBuilding.cs" />
+    <Compile Include="XML\IRuleCacheSource.cs" />
+    <Compile Include="XML\Prop\PropAssetFolderRuleXml.cs" />
+    <Compile Include="XML\Prop\PropCityDataRuleXml.cs" />
+    <Compile Include="XML\Prop\RuleCheckTypeProp.cs" />
+    <Compile Include="XML\RuleSource.cs" />
+    <Compile Include="XML\Vehicle\BasicVehicleColorConfigurationXml.cs" />
+    <Compile Include="XML\Vehicle\VehicleCityDataRuleXml.cs" />
+    <Compile Include="XML\Vehicle\RuleCheckTypeVehicle.cs" />
+    <Compile Include="XML\Vehicle\VehicleAssetFolderRulesXml.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="commons\UI\i18n\en.properties" />
+    <EmbeddedResource Include="commons\UI\i18n\fr.properties" />
+    <EmbeddedResource Include="commons\UI\i18n\pt.properties" />
+    <EmbeddedResource Include="commons\UI\i18n\ru.properties" />
+    <EmbeddedResource Include="UI\i18n\en.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\i18n\pt.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\VersionNotes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Lib.Harmony.1.2.0.1\lib\net35\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>S:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>S:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="ColossalManaged">
+      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ColossalManaged.dll</HintPath>
+    </Reference>
+    <Reference Include="ICities">
+      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL" />
+    <Reference Include="PopsApiWrapper">
+      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\PopsApiWrapper.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine">
+      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.Networking">
+      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>A:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="commons\README.md" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\Images\%25K45_ACE_Icon.png" />
+    <Content Include="commons\UI\Images\%25K45_24hLineIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_AbsoluteMode.png" />
+    <Content Include="commons\UI\Images\%25K45_AutoColorIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_AutoNameIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_CameraIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_CircleIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_ConeIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Copy.png" />
+    <Content Include="commons\UI\Images\%25K45_CrossIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Delete.png" />
+    <Content Include="commons\UI\Images\%25K45_DepotIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_DiamondIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Down.png" />
+    <Content Include="commons\UI\Images\%25K45_Export.png" />
+    <Content Include="commons\UI\Images\%25K45_FontIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_HeptagonIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_HexagonIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Import.png" />
+    <Content Include="commons\UI\Images\%25K45_K45Button.png" />
+    <Content Include="commons\UI\Images\%25K45_K45ButtonDisabled.png" />
+    <Content Include="commons\UI\Images\%25K45_K45ButtonFocused.png" />
+    <Content Include="commons\UI\Images\%25K45_K45ButtonHovered.png" />
+    <Content Include="commons\UI\Images\%25K45_Layers.png" />
+    <Content Include="commons\UI\Images\%25K45_Left.png" />
+    <Content Include="commons\UI\Images\%25K45_Load.png" />
+    <Content Include="commons\UI\Images\%25K45_Lock.png" />
+    <Content Include="commons\UI\Images\%25K45_MapIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_MenuPanel_color.png" />
+    <Content Include="commons\UI\Images\%25K45_Minus.png" />
+    <Content Include="commons\UI\Images\%25K45_MountainIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_MoveCross.png" />
+    <Content Include="commons\UI\Images\%25K45_New.png" />
+    <Content Include="commons\UI\Images\%25K45_OctagonIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_OvalIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_ParachuteIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Paste.png" />
+    <Content Include="commons\UI\Images\%25K45_PentagonIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_PerHourIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Plus.png" />
+    <Content Include="commons\UI\Images\%25K45_QuestionMark.png" />
+    <Content Include="commons\UI\Images\%25K45_RelativeMode.png" />
+    <Content Include="commons\UI\Images\%25K45_Reload.png" />
+    <Content Include="commons\UI\Images\%25K45_RemoveIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_RemoveUnwantedIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Right.png" />
+    <Content Include="commons\UI\Images\%25K45_RoundedHexagonIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_RoundedPentagonIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_RoundedSquareIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_RoundedTriangleIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S03StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S04StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S05StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S06StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S07StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S08StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S09StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_S10StarIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Save.png" />
+    <Content Include="commons\UI\Images\%25K45_Settings.png" />
+    <Content Include="commons\UI\Images\%25K45_SquareIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Steam.png" />
+    <Content Include="commons\UI\Images\%25K45_TrapezeIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_TriangleIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_Unlock.png" />
+    <Content Include="commons\UI\Images\%25K45_Up.png" />
+    <Content Include="commons\UI\Images\%25K45_X.png" />
+    <Content Include="commons\UI\Images\base.psd" />
+    <Content Include="commons\UI\Images\bordersDescriptor.txt" />
+    <Content Include="commons\UI\Images\lineFormat.png" />
+    <Content Include="commons\UI\Images\lineFormat.psd" />
+    <Content Include="commons\UI\Images\lineFormats.psd" />
+    <Content Include="commons\UI\Images\sprites.psd" />
+    <Content Include="UI\Images\icon.psd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="_requiredDLLs\" />
+  </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y "$(TargetPath)" "$(ProjectDir)\_requiredDLLs"
+xcopy /Y "$(TargetDir)0Harmony.dll" "$(ProjectDir)\_requiredDLLs\"
+xcopy /Y /e "$(ProjectDir)\_requiredDLLs\*" "S:\Steam\steamapps\workshop\content\255710\2140866327\*"
+xcopy /Y /e "$(ProjectDir)\_requiredDLLs\*" "C:\Users\Leandro\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\ACE\"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>del /q "S:\Steam\steamapps\workshop\content\255710\2140866327\*"
+del /q "$(ProjectDir)\_requiredDLLs\*"
+del /q "C:\Users\Leandro\AppData\Local\Colossal Order\Cities_Skylines\Addons\Mods\ACE\"</PreBuildEvent>
+  </PropertyGroup>
+</Project>

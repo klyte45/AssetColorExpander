@@ -1,0 +1,13 @@
+There are 5 different methods to set the coloring mode for vehicle (the same from the buildings):
+	
+	-<color #FFFF00>Skip</color> - Use the game behavior.
+	-<color #FFFF00>Pastel (Original)</color> - Use generated pastel colors.
+	-<color #FFFF00>Pastel - Higher Saturation</color> - Use generated pastel colors, but with colors slightly saturated.
+	-<color #FFFF00>Pastel - Vivid</color> - Use generated pastel colors, but with colors strongly saturated.
+	-<color #FFFF00>Color list</color> - Create a palette of colors to use in this rule.
+	
+Check the <color #FFFF00>Building's Color Mode help</color> to see more details about the coloring modes.
+
+The only difference is that when coloring vehicles with trailers (like trains), <color #FFFF88>you can configure to allow the rule to be applied for each trailer instead of inherit the color from the first vehicle.</color> So, you can spawn multicolored trains, trams and other kind of vehicles.
+
+Note that any color configuration <color #FF0000>WON'T OVERRIDE</color> the vehicle color if it belongs to a transport line!

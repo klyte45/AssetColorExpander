@@ -1,11 +1,12 @@
 using ColossalFramework.Globalization;
 using ColossalFramework.Math;
 using ColossalFramework.UI;
-using Klyte.BuildingColorExpander.Utils;
-using Klyte.BuildingColorExpander.XML;
 using Klyte.Commons.Extensors;
 using Klyte.Commons.Interfaces;
 using Klyte.Commons.Utils;
+using Klyte.VehicleColorExpander.Utils;
+using Klyte.VehicleColorExpander.XML;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,28 +14,27 @@ using System.Reflection;
 using System.Xml.Serialization;
 using UnityEngine;
 
-[assembly: AssemblyVersion("1.0.0.0")]
-namespace Klyte.BuildingColorExpander
+namespace Klyte.VehicleColorExpander
 {
-    public class BuildingColorExpanderMod : BasicIUserModSimplified<BuildingColorExpanderMod, BCEResourceLoader, MonoBehaviour, UICustomControl>
+    public class VehicleColorExpanderMod : BasicIUserModSimplified<VehicleColorExpanderMod, VCEResourceLoader, MonoBehaviour>
     {
-        public BuildingColorExpanderMod() => Construct();
+        public VehicleColorExpanderMod() => Construct();
 
-        public override string SimpleName => "Building Color Expander";
+        public override string SimpleName => "Vehicle Color Expander";
 
-        public override string Description => "Expand the color variation of the buildings";
+        public override string Description => "Expand the color variation of the vehicles";
 
         public override void DoErrorLog(string fmt, params object[] args) => LogUtils.DoErrorLog(fmt, args);
 
         public override void DoLog(string fmt, params object[] args) => LogUtils.DoLog(fmt, args);
 
-        public override void LoadSettings() => m_redirector = KlyteMonoUtils.CreateElement<Redirector>(null, "BCE");
+        public override void LoadSettings() => m_redirector = KlyteMonoUtils.CreateElement<Redirector>(null, "VCE");
 
         public override void TopSettingsUI(UIHelperExtension helper)
         {
-            UIHelperExtension group8 = helper.AddGroupExtended(Locale.Get("K45_BCE_GENERAL_INFO"));
-            AddFolderButton(DefaultBuildingsConfigurationFolder, group8, "K45_BCE_DEFAULT_BUILDINGS_CONFIG_PATH_TITLE");
-            helper.AddButton(Locale.Get("K45_BCE_RELOAD_FILES"), ReloadFiles);
+            UIHelperExtension group8 = helper.AddGroupExtended(Locale.Get("K45_VCE_GENERAL_INFO"));
+            AddFolderButton(DefaultBuildingsConfigurationFolder, group8, "K45_VCE_DEFAULT_BUILDINGS_CONFIG_PATH_TITLE");
+            helper.AddButton(Locale.Get("K45_VCE_RELOAD_FILES"), ReloadFiles);
         }
 
         private static void AddFolderButton(string filePath, UIHelperExtension helper, string localeId)
@@ -47,8 +47,8 @@ namespace Klyte.BuildingColorExpander
             namesFilesButton.text = fileInfo.FullName + Path.DirectorySeparatorChar;
         }
 
-        public const string DEFAULT_XML_NAME = "k45_bce_data.xml";
-        public static readonly string FOLDER_NAME = FileUtils.BASE_FOLDER_PATH + "BuildingColorExpander";
+        public const string DEFAULT_XML_NAME = "k45_vce_data.xml";
+        public static readonly string FOLDER_NAME = FileUtils.BASE_FOLDER_PATH + "VehicleColorExpander";
         public const string DEFAULT_CUSTOM_CONFIG_FOLDER = "GeneralXmlConfigs";
 
         public static string DefaultBuildingsConfigurationFolder { get; } = FOLDER_NAME + Path.DirectorySeparatorChar + DEFAULT_CUSTOM_CONFIG_FOLDER;
@@ -56,7 +56,10 @@ namespace Klyte.BuildingColorExpander
         private static readonly Dictionary<string, ColorConfigurationXml> m_colorConfigData = new Dictionary<string, ColorConfigurationXml>();
         protected override void OnLevelLoadingInternal()
         {
-            m_redirector.AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(BuildingColorExpanderMod).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+            m_redirector.AddRedirect(typeof(VehicleAI).GetMethod("GetColor", RedirectorUtils.allFlags, null, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) }, null), typeof(VehicleColorExpanderMod).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+            m_redirector.AddRedirect(typeof(VehicleAI).GetMethod("GetColor", RedirectorUtils.allFlags, null, new Type[] { typeof(ushort), typeof(VehicleParked).MakeByRefType(), typeof(InfoManager.InfoMode) }, null), typeof(VehicleColorExpanderMod).GetMethod("PreGetColorParked", RedirectorUtils.allFlags));
+            m_redirector.AddRedirect(typeof(PassengerCarAI).GetMethod("GetColor", RedirectorUtils.allFlags, null, new Type[] { typeof(ushort), typeof(Vehicle).MakeByRefType(), typeof(InfoManager.InfoMode) }, null), typeof(VehicleColorExpanderMod).GetMethod("PreGetColor", RedirectorUtils.allFlags));
+            m_redirector.AddRedirect(typeof(PassengerCarAI).GetMethod("GetColor", RedirectorUtils.allFlags, null, new Type[] { typeof(ushort), typeof(VehicleParked).MakeByRefType(), typeof(InfoManager.InfoMode) }, null), typeof(VehicleColorExpanderMod).GetMethod("PreGetColorParked", RedirectorUtils.allFlags));
             ReloadFiles();
         }
 
@@ -78,22 +81,43 @@ namespace Klyte.BuildingColorExpander
             }
         }
 
-        public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result)
+        public static bool PreGetColor(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result)
         {
             if (infoMode != InfoManager.InfoMode.None)
             {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} INFO = {infoMode}");
+                LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {vehicleID} INFO = {infoMode}");
                 return true;
             }
             if (!m_colorConfigData.TryGetValue(data.Info.name, out ColorConfigurationXml itemData)
-                && !m_colorConfigData.TryGetValue(data.Info.m_buildingAI.GetType().Name, out itemData)
-                && (!(data.Info.m_buildingAI is PrivateBuildingAI) || !m_colorConfigData.TryGetValue("__ZONED__", out itemData))
+                && !m_colorConfigData.TryGetValue(data.Info.m_vehicleAI.GetType().Name, out itemData)
                 && !m_colorConfigData.TryGetValue("*", out itemData))
             {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} - not found");
+                LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {vehicleID} ({data.Info.m_vehicleAI.GetType().Name} | {data.Info.name}) - not found");
                 return true;
             }
-            LogUtils.DoLog($"GETTING COLOR FOR BUILDING: {buildingID}");
+            LogUtils.DoLog($"GETTING COLOR FOR VEHICLE: {vehicleID}  ({data.Info.m_vehicleAI.GetType().Name} | {data.Info.name}) ");
+            return GetNewColor(vehicleID, ref __result, itemData);
+        }
+        public static bool PreGetColorParked(ushort parkedVehicleID, ref VehicleParked data, InfoManager.InfoMode infoMode, ref Color __result)
+        {
+            if (infoMode != InfoManager.InfoMode.None)
+            {
+                LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {parkedVehicleID} INFO = {infoMode}");
+                return true;
+            }
+            if (!m_colorConfigData.TryGetValue(data.Info.name, out ColorConfigurationXml itemData)
+                && !m_colorConfigData.TryGetValue(data.Info.m_vehicleAI.GetType().Name, out itemData)
+                && !m_colorConfigData.TryGetValue("*", out itemData))
+            {
+                LogUtils.DoLog($"NOT GETTING COLOR FOR VEHICLE: {parkedVehicleID} ({data.Info.m_vehicleAI.GetType().Name} | {data.Info.name}) - not found");
+                return true;
+            }
+            LogUtils.DoLog($"GETTING COLOR FOR VEHICLE: {parkedVehicleID}  ({data.Info.m_vehicleAI.GetType().Name} | {data.Info.name}) ");
+            return GetNewColor(parkedVehicleID, ref __result, itemData);
+        }
+
+        private static bool GetNewColor(ushort vehicleID, ref Color __result, ColorConfigurationXml itemData)
+        {
             float multiplier;
             switch (itemData.ColoringMode)
             {
@@ -107,7 +131,7 @@ namespace Klyte.BuildingColorExpander
                 case ColoringMode.PASTEL_ORIG:
                     multiplier = 1f;
                     CASE_ORIG:
-                    __result = new RandomPastelColorGenerator(buildingID, multiplier, itemData.PastelConfig).GetNext();
+                    __result = new RandomPastelColorGenerator(vehicleID, multiplier, itemData.PastelConfig).GetNext();
                     LogUtils.DoLog($"GETTING PASTEL COLOR: {__result}");
                     return false;
 
@@ -117,7 +141,7 @@ namespace Klyte.BuildingColorExpander
                         LogUtils.DoLog($"NO COLOR AVAILABLE!");
                         return true;
                     }
-                    Randomizer randomizer = new Randomizer(buildingID);
+                    Randomizer randomizer = new Randomizer(vehicleID);
 
                     __result = itemData.ColorList[randomizer.Int32((uint) itemData.ColorList.Count)];
                     LogUtils.DoLog($"GETTING LIST COLOR: {__result}");
@@ -142,9 +166,10 @@ namespace Klyte.BuildingColorExpander
 
         private void LoadDescriptorsFromXml(FileStream stream)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(BceConfig));
 
-            if (serializer.Deserialize(stream) is BceConfig configList)
+            XmlSerializer serializer = new XmlSerializer(typeof(VceConfig));
+
+            if (serializer.Deserialize(stream) is VceConfig configList)
             {
                 foreach (ColorConfigurationXml config in configList.ConfigList)
                 {

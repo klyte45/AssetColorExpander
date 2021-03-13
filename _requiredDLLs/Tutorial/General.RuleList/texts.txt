@@ -1,0 +1,12 @@
+The <color #FFFF00>{0}</color> have the tools to organize and set the right priority for each color rule.
+<BR>The rules are listed in apply order. In this example the <color #FFFF00>Rule 1</color> will be apply first than any other rule. If the <color #FFFF00>Rule 1</color> doesn't match the current processing building, so the <color #FFFF00>Rule 2</color> will be applied, and so on.
+The rules conditions can be setted on rule editor at right. Just click in the rule item in the list to open it for editing.
+<BR>The low button bar have options for add/move/remove rules.
+
+- Use the <sprite K45_New> button to create a new rule - it will be added to the end of the list as default
+- Use the arrow buttons to change the rule priority (<sprite K45_Up> raises it priority, <sprite K45_Down> lower it)
+- Use the <sprite K45_X> button to remove the current selected rule
+<BR>Use the <sprite K45_Export> button to <color #FFFF00>export the entire ruleset</color> into the mod library. All ruleset exported here are contained into a file in the mod configurations folder. Locate it at:
+
+<color #FFFF00>{1}</color>
+<BR>Use the <sprite K45_Import> button to <color #FFFF00>import an entire ruleset</color> from the mod library. Any previous saved ruleset can be selected in a popup that will be opened. Of course, you can import it manually from another place by replacing the library file for another.

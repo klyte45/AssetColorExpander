@@ -1,0 +1,15 @@
+There are 7 different types of conditional rules that can be applied to citizens:
+	
+	-<color #FFFF00>Service</color> - Filter the citizens by a specific service (like Residential - the local citizens, Tourism - tourists, Health Care, etc). Most of the values are self-explainable, but there's no localization for them. Use <color #FFFF88>Any</color> option to apply the rule to all citizens in the city.
+	-<color #FFFF00>Service & Subservice</color> - Same than Service, but adds another filter field to Subservice. Note that only some subservices applies to a Service. Select <color #FFFF88>Any</color> as Service if not sure about the Service that contains the subservice. Not so effective for citizens...
+	-<color #FFFF00>Service & Level</color> - Same than Service, but adds another filter to Level. Level is used in vehicles just to filter in the game some kind of different source buildings for the same vehicle type (like Prision Van x Police Department regular patrol car). Not so effective for citizens...
+	-<color #FFFF00>Service, Subservice & Level</color> - Mix all the rules below, becaming even more specific. Not so effective for citizens...
+	-<color #FFFF00>Item Class</color> - Item classes in game are used to group assets into a behavior or category. They are named, so is easier to suppose what they do. 
+	-<color #FFFF00>Asset Name</color> - Most restrictive rule, only will apply the rule to just one asset. Type the name to find it on the list.
+	-<color #FFFF00>AI</color> - Filter by artificial intelligence implementation. 
+	
+<BR>Some tips:
+	- Always ordenate your rules from most to less restrictive. It will ensure that all rules have a chance to be applied.
+	- Choose well your rule names. It will help you when organizing the rule list.
+	- The AIs HumanAI and AnimalAI are useful to segregate the rules between these two classes.
+	- Use the AnimalAI filter + Skip coloring mode to ignore animals as first rule if you don't want to deal with them
