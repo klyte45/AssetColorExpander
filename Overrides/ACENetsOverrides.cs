@@ -7,12 +7,6 @@ namespace Klyte.AssetColorExpander
         public void Awake() => AddRedirect(typeof(NetManager).GetMethod("ReleaseSegment"), null, typeof(ACENetsOverrides).GetMethod("AfterReleaseSegment", RedirectorUtils.allFlags));
 
 
-        public static void AfterReleaseSegment(ushort segment)
-        {
-            if (AssetColorExpanderMod.Controller != null && AssetColorExpanderMod.Controller.UpdatedRulesSubPropsNets != null)
-            {
-                AssetColorExpanderMod.Controller.UpdatedRulesSubPropsNets[segment] = null;
-            }
-        }
+        public static void AfterReleaseSegment(ushort segment) => AssetColorExpanderMod.Controller.CachedColorSubPropsNets[segment] = null;
     }
 }

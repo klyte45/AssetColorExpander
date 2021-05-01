@@ -1,9 +1,7 @@
 ﻿using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.XML;
 using Klyte.Commons.Extensions;
-using Klyte.Commons.Utils;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Klyte.AssetColorExpander
@@ -13,63 +11,33 @@ namespace Klyte.AssetColorExpander
         public void Awake()
         {
             AddRedirect(typeof(BuildingAI).GetMethod("GetColor"), typeof(ACEBuildingOverrides).GetMethod("PreGetColor", RedirectorUtils.allFlags));
-
             AddRedirect(typeof(BuildingManager).GetMethod("ReleaseBuilding"), null, typeof(ACEBuildingOverrides).GetMethod("AfterReleaseBuilding", RedirectorUtils.allFlags));
         }
 
-        public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataBuildings;
-        public static ref Color?[] ColorCache => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING];
-        public static ref bool[] RulesUpdated => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)ACEController.CacheOrder.BUILDING];
+        public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result) =>
+            ACEColorGenUtils.GetColorGeneric<BuildingAssetFolderRuleXml, BuildingCityDataRuleXml, BuildingInfo>(
+                ref __result,
+                buildingID,
+                ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING],
+                infoMode, ColorParametersGetter, Accepts);
 
-        public static bool PreGetColor(ushort buildingID, ref Building data, InfoManager.InfoMode infoMode, ref Color __result)
+        private static void ColorParametersGetter(
+            ushort buildingID,
+             out ACERulesetContainer<BuildingCityDataRuleXml> rulesGlobal,
+             out Dictionary<string, BuildingAssetFolderRuleXml> assetRules,
+             out BuildingInfo info,
+             out Vector3 pos,
+             out uint seed)
         {
-
-            if (infoMode != InfoManager.InfoMode.None)
-            {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} INFO = {infoMode}");
-                return true;
-            }
-            if (RulesUpdated[buildingID])
-            {
-                if (ColorCache[buildingID] == null)
-                {
-                    return true;
-                }
-                __result = ColorCache[buildingID] ?? Color.clear;
-                return false;
-            }
-
-            string dataName = data.Info?.name;
-            BasicColorConfigurationXml itemData;
-
-            BuildingInfo info = data.Info;
-            byte district = DistrictManager.instance.GetDistrict(data.m_position);
-            byte park = DistrictManager.instance.GetPark(data.m_position);
-            itemData = ACEBuildingConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
-            if (itemData == null && AssetsRules != null && AssetsRules.TryGetValue(dataName, out BuildingAssetFolderRuleXml itemDataAsset))
-            {
-                itemData = itemDataAsset;
-            }
-            RulesUpdated[buildingID] = true;
-
-            if (itemData == null || itemData.ColoringMode == ColoringMode.SKIP)
-            {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR BUILDING: {buildingID} - {itemData?.ColoringMode} not found");
-                ColorCache[buildingID] = null;
-                RulesUpdated[buildingID] = true;
-                return true;
-            }
-            LogUtils.DoLog($"GETTING COLOR FOR BUILDING: {buildingID}");
-            return ACEColorGenUtils.GetColor(buildingID, ref __result, itemData, ref ColorCache[buildingID], ref RulesUpdated[buildingID]);
+            ref Building data = ref BuildingManager.instance.m_buildings.m_buffer[buildingID];
+            assetRules = AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataBuildings;
+            rulesGlobal = ACEBuildingConfigRulesData.Instance.Rules;
+            info = data.Info;
+            pos = data.m_position;
+            seed = buildingID;
         }
+        private static bool Accepts(ushort id, BuildingCityDataRuleXml x, byte district, byte park, BuildingInfo info) => x.Accepts(info, district, park);
 
-        public static void AfterReleaseBuilding(ushort building)
-        {
-            if (AssetColorExpanderMod.Controller != null && RulesUpdated != null && AssetColorExpanderMod.Controller.UpdatedRulesSubPropsBuildings != null)
-            {
-                RulesUpdated[building] = false;
-                AssetColorExpanderMod.Controller.UpdatedRulesSubPropsBuildings[building] = null;
-            }
-        }
+        public static void AfterReleaseBuilding(ushort building) => AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING][building] = null;
     }
 }
