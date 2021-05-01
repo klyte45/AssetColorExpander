@@ -42,16 +42,28 @@ namespace Klyte.AssetColorExpander
                 ref __result,
                 vehicleId,
                 ref AssetColorExpanderMod.Controller.CachedColor[parked ? (int)ACEController.CacheOrder.PARKED_VEHICLE : (int)ACEController.CacheOrder.VEHICLE],
-                infoMode, ColorParametersGetter(randomSeed, parked), parked ? AcceptsParked : Accepts());
-
-        private static ColorParametersGetter<VehicleAssetFolderRuleXml, VehicleCityDataRuleXml, VehicleInfo> ColorParametersGetter(uint randomSeed, bool isParked) =>
+                infoMode, ColorParametersGetter(parked), parked ? AcceptsParked : Accepts(), (x, y) => GetSeed(parked, x, y));
+        private static uint GetSeed(bool isParked, int arg1, BasicColorConfigurationXml arg2)
+        {
+            if (isParked || (arg2 is VehicleCityDataRuleXml vc && vc.AllowDifferentColorsOnWagons) || (arg2 is VehicleAssetFolderRuleXml vf && vf.AllowDifferentColorsOnWagons))
+            {
+                return (uint)arg1;
+            }
+            else
+            {
+                ref Vehicle data = ref VehicleManager.instance.m_vehicles.m_buffer[arg1];
+                return data.m_leadingVehicle > 0 ?
+                VehicleManager.instance.m_vehicles.m_buffer[arg1].GetFirstVehicle((ushort)arg1)
+                : (uint)arg1;
+            }
+        }
+        private static ColorParametersGetter<VehicleAssetFolderRuleXml, VehicleCityDataRuleXml, VehicleInfo> ColorParametersGetter(bool isParked) =>
              (
              ushort vehicleId,
              out ACERulesetContainer<VehicleCityDataRuleXml> rulesGlobal,
              out Dictionary<string, VehicleAssetFolderRuleXml> assetRules,
              out VehicleInfo info,
-             out Vector3 pos,
-             out uint seed) =>
+             out Vector3 pos) =>
         {
             if (isParked)
             {
@@ -67,7 +79,6 @@ namespace Klyte.AssetColorExpander
             }
             assetRules = AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataVehicles;
             rulesGlobal = ACEVehicleConfigRulesData.Instance.Rules;
-            seed = randomSeed;
         };
         private static RuleValidator<VehicleCityDataRuleXml, VehicleInfo> Accepts() => (id, x, district, park, info) =>
         {
@@ -106,7 +117,7 @@ namespace Klyte.AssetColorExpander
                 }
             }
 
-            return PreGetColor_Internal(vehicleID, infoMode, ref __result, vehicleID, false);
+            return PreGetColor_Internal(vehicleID, infoMode, ref __result, data.m_leadingVehicle != 0 ? vehicleID : data.m_leadingVehicle, false);
         }
         public static bool PreGetColorSourceBuilding(ushort vehicleID, ref Vehicle data, InfoManager.InfoMode infoMode, ref Color __result)
         {

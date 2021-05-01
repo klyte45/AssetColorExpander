@@ -110,24 +110,22 @@ namespace Klyte.AssetColorExpander
                            ref resultClr,
                            idx,
                            ref arr,
-                           InfoManager.instance.CurrentMode, ColorParametersGetter(randomSeed, info, position), Accepts(parentItemClass, buildingInfo, netInfo))
+                           InfoManager.instance.CurrentMode, ColorParametersGetter(info, position), Accepts(parentItemClass, buildingInfo, netInfo), (x, y) => randomSeed)
                 ? resultClr
                 : info.GetColor(ref randomizer);
         }
 
-        private static ColorParametersGetter<PropAssetFolderRuleXml, PropCityDataRuleXml, PropInfo> ColorParametersGetter(uint randomSeed, PropInfo propInfo, Vector3 position) =>
+        private static ColorParametersGetter<PropAssetFolderRuleXml, PropCityDataRuleXml, PropInfo> ColorParametersGetter(PropInfo propInfo, Vector3 position) =>
              (ushort id,
              out ACERulesetContainer<PropCityDataRuleXml> rulesGlobal,
              out Dictionary<string, PropAssetFolderRuleXml> assetRules,
              out PropInfo info,
-             out Vector3 pos,
-             out uint seed) =>
+             out Vector3 pos) =>
              {
                  info = propInfo;
                  assetRules = AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataProps;
                  rulesGlobal = ACEPropConfigRulesData.Instance.Rules;
                  pos = position;
-                 seed = randomSeed;
              };
         private static RuleValidator<PropCityDataRuleXml, PropInfo> Accepts(ItemClass parentItemClass, BuildingInfo buildingInfo, NetInfo netInfo) => (id, x, district, park, info) => x.Accepts(info.m_class, parentItemClass, info.name, buildingInfo?.name, netInfo?.name, district, park);
 

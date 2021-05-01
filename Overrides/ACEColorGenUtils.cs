@@ -2,6 +2,7 @@
 using Klyte.AssetColorExpander.XML;
 using Klyte.Commons;
 using Klyte.Commons.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -13,8 +14,7 @@ namespace Klyte.AssetColorExpander
         out ACERulesetContainer<C> rulesGlobal,
            out Dictionary<string, F> assetRules,
            out I info,
-           out Vector3 pos,
-           out uint seed)
+           out Vector3 pos)
         where F : BasicColorConfigurationXml, new()
         where C : BasicColorConfigurationXml, new()
         where I : PrefabInfo;
@@ -31,7 +31,8 @@ namespace Klyte.AssetColorExpander
             ref Color?[] colorCacheArray,
             InfoManager.InfoMode infoMode,
             ColorParametersGetter<F, C, I> getter,
-            RuleValidator<C, I> ruleValidator)
+            RuleValidator<C, I> ruleValidator,
+            Func<int, BasicColorConfigurationXml, uint> getSeed)
             where F : BasicColorConfigurationXml, new()
             where C : BasicColorConfigurationXml, new()
             where I : PrefabInfo
@@ -56,7 +57,7 @@ namespace Klyte.AssetColorExpander
                 return false;
             }
 
-            getter(id, out ACERulesetContainer<C> rulesGlobal, out Dictionary<string, F> assetRules, out I info, out Vector3 pos, out uint seed);
+            getter(id, out ACERulesetContainer<C> rulesGlobal, out Dictionary<string, F> assetRules, out I info, out Vector3 pos);
             string dataName = info?.name;
             BasicColorConfigurationXml itemData;
 
@@ -83,7 +84,7 @@ namespace Klyte.AssetColorExpander
                 LogUtils.DoLog($"GETTING COLOR FOR BUILDING: {id}");
             }
 
-            return ACEColorGenUtils.GetColor(seed, ref __result, itemData, ref resultColor, district);
+            return GetColor(getSeed(id, itemData), ref __result, itemData, ref resultColor, district);
         }
         private static bool GetColor(uint seed, ref Color result, BasicColorConfigurationXml itemData, ref Color? cacheEntry, byte districtId)
         {

@@ -19,22 +19,20 @@ namespace Klyte.AssetColorExpander
                 ref __result,
                 buildingID,
                 ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING],
-                infoMode, ColorParametersGetter, Accepts);
+                infoMode, ColorParametersGetter, Accepts, (x, y) => buildingID);
 
         private static void ColorParametersGetter(
             ushort buildingID,
              out ACERulesetContainer<BuildingCityDataRuleXml> rulesGlobal,
              out Dictionary<string, BuildingAssetFolderRuleXml> assetRules,
              out BuildingInfo info,
-             out Vector3 pos,
-             out uint seed)
+             out Vector3 pos)
         {
             ref Building data = ref BuildingManager.instance.m_buildings.m_buffer[buildingID];
             assetRules = AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataBuildings;
             rulesGlobal = ACEBuildingConfigRulesData.Instance.Rules;
             info = data.Info;
             pos = data.m_position;
-            seed = buildingID;
         }
         private static bool Accepts(ushort id, BuildingCityDataRuleXml x, byte district, byte park, BuildingInfo info) => x.Accepts(info, district, park);
 
