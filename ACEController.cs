@@ -65,12 +65,10 @@ namespace Klyte.AssetColorExpander
         public void CleanCacheBuilding()
         {
             CachedColor[(int)CacheOrder.BUILDING] = new Color?[BuildingManager.MAX_BUILDING_COUNT];
+            BuildingManager.instance.UpdateBuildingColors();
         }
 
-        public void CleanCacheCitizen()
-        {
-            CachedColor[(int)CacheOrder.CITIZEN] = new Color?[CitizenManager.MAX_INSTANCE_COUNT];
-        }
+        public void CleanCacheCitizen() => CachedColor[(int)CacheOrder.CITIZEN] = new Color?[CitizenManager.MAX_INSTANCE_COUNT];
         public void CleanCacheProp()
         {
             CachedColor[(int)CacheOrder.PROP_PLACED] = new Color?[PropManager.MAX_PROP_COUNT];

@@ -452,8 +452,16 @@ namespace Klyte.AssetColorExpander.UI
             m_pasteSettings.isVisible = true;
         });
 
-        private void OnSetDistrictsAsBlacklist(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) => { x.SelectedDistrictsIsBlacklist = isChecked; m_districtWhiteList.isChecked = !isChecked; });
-        private void OnSetDistrictsAsWhitelist(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) => { x.SelectedDistrictsIsBlacklist = !isChecked; m_districtBlackList.isChecked = !isChecked; });
+        private void OnSetDistrictsAsBlacklist(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        {
+            x.SelectedDistrictsIsBlacklist = isChecked;
+            m_districtWhiteList.isChecked = !isChecked;
+        });
+        private void OnSetDistrictsAsWhitelist(bool isChecked) => SafeObtain((ref BuildingCityDataRuleXml x) =>
+        {
+            x.SelectedDistrictsIsBlacklist = !isChecked;
+            m_districtBlackList.isChecked = !isChecked;
+        });
         private void OnChangeDistrictRestrictionOrder(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {
             if (sel >= 0)

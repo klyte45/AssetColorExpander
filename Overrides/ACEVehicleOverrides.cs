@@ -38,7 +38,7 @@ namespace Klyte.AssetColorExpander
 
 
         public static bool PreGetColor_Internal(ushort vehicleId, InfoManager.InfoMode infoMode, ref Color __result, uint randomSeed, bool parked) =>//(ushort instanceID, ref CitizenInstance data, InfoManager.InfoMode infoMode, ref Color __result) =>
-            ACEColorGenUtils.GetColorGeneric<VehicleAssetFolderRuleXml, VehicleCityDataRuleXml, VehicleInfo>(
+            ACEColorGenUtils.GetColorGeneric(
                 ref __result,
                 vehicleId,
                 ref AssetColorExpanderMod.Controller.CachedColor[parked ? (int)ACEController.CacheOrder.PARKED_VEHICLE : (int)ACEController.CacheOrder.VEHICLE],

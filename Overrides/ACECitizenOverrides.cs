@@ -21,7 +21,7 @@ namespace Klyte.AssetColorExpander
             ACEColorGenUtils.GetColorGeneric<CitizenAssetFolderRuleXml, CitizenCityDataRuleXml, CitizenInfo>(
                 ref __result,
                 instanceID,
-                ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.CITIZEN],
+                ref AssetColorExpanderMod.Controller.CachedColor[(int)CacheOrder.CITIZEN],
                 infoMode, ColorParametersGetter, Accepts);
 
         private static void ColorParametersGetter(
