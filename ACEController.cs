@@ -1,4 +1,5 @@
-﻿using Klyte.Commons.Interfaces;
+﻿using Klyte.AssetColorExpander.ModShared;
+using Klyte.Commons.Interfaces;
 using Klyte.Commons.Utils;
 using System;
 using System.IO;
@@ -16,6 +17,8 @@ namespace Klyte.AssetColorExpander
         public ACELoadedDataContainer LoadedConfiguration { get; } = new ACELoadedDataContainer();
         public ACEClassesCache ClassesCache { get; } = new ACEClassesCache();
         public ACEAssetCache AssetsCache { get; } = new ACEAssetCache();
+        internal IBridgeADR ConnectorADR { get; private set; }
+
 
         public Color?[][] CachedColor { get; private set; } = new Color?[Enum.GetValues(typeof(CacheOrder)).Length][];
 
@@ -39,7 +42,11 @@ namespace Klyte.AssetColorExpander
 
         public Color?[][][] CachedColorSubPropsNets = null;
 
-        protected void Awake() => ClassesCache.LoadCache();
+        protected void Awake()
+        {
+            ClassesCache.LoadCache();
+            ConnectorADR = PluginUtils.GetImplementationTypeForMod<BridgeADR, BridgeADRFallback, IBridgeADR>(gameObject, "KlyteAddresses", "3.0.0.3");
+        }
 
         protected override void StartActions()
         {

@@ -83,9 +83,9 @@ namespace Klyte.AssetColorExpander
                 LogUtils.DoLog($"GETTING COLOR FOR BUILDING: {id}");
             }
 
-            return ACEColorGenUtils.GetColor(seed, ref __result, itemData, ref resultColor);
+            return ACEColorGenUtils.GetColor(seed, ref __result, itemData, ref resultColor, district);
         }
-        public static bool GetColor(uint seed, ref Color result, BasicColorConfigurationXml itemData, ref Color? cacheEntry)
+        private static bool GetColor(uint seed, ref Color result, BasicColorConfigurationXml itemData, ref Color? cacheEntry, byte districtId)
         {
             float multiplier;
             switch (itemData.ColoringMode)
@@ -129,6 +129,9 @@ namespace Klyte.AssetColorExpander
                     }
 
                     cacheEntry = result;
+                    return false;
+                case ColoringMode.DISTRICT:
+                    cacheEntry = AssetColorExpanderMod.Controller.ConnectorADR.GetDistrictColor(districtId);
                     return false;
                 default:
                     if (CommonProperties.DebugMode)

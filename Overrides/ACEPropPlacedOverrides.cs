@@ -83,7 +83,6 @@ namespace Klyte.AssetColorExpander
                 {
                     instrList.RemoveAt(i);
                     instrList.InsertRange(i, new List<CodeInstruction>{
-                        new CodeInstruction(OpCodes.Ldarga_S, 0),
                         new CodeInstruction( OpCodes.Ldarg_2),
                         new CodeInstruction( OpCodes.Ldarg_3),
                         new CodeInstruction( OpCodes.Ldarg_S,4),
@@ -156,7 +155,7 @@ namespace Klyte.AssetColorExpander
             return PreGetColor_Internal(ref randomizer, (uint)(BUILDINGS_OFFSET_SEED + (buildingId << 8) + i), info, ai.m_info.m_class, ai.m_info, null, data.m_position, ref ColorCacheBuilding[buildingId], (ushort)i);
         }
 
-        public static Color PreGetColorNetProps(PropInfo info, ref Randomizer randomizer, ref NetLane netLane, ushort segmentId, uint laneId, NetInfo.Lane laneInfo, int propId, float position)
+        public static Color PreGetColorNetProps(PropInfo info, ref Randomizer randomizer, ushort segmentId, uint laneId, NetInfo.Lane laneInfo, int propId, float position)
         {
 
             if (ColorCacheNet[laneId] == null || ColorCacheNet[laneId].Length != (laneInfo.m_laneProps?.m_props?.Length ?? 0))
@@ -172,7 +171,7 @@ namespace Klyte.AssetColorExpander
             int idx = Mathf.Max(0, Mathf.Min(7, Mathf.FloorToInt(position * 8)));
             return PreGetColor_Internal(ref randomizer,
                 (uint)(NETS_OFFSET_SEED + (segmentId << 19) + (laneId << 11) + (propId << 3) + Mathf.FloorToInt(position * 8)),
-                info, netInfo.m_class, null, netInfo, netLane.m_bezier.Position(position), ref ColorCacheNet[laneId][propId], (ushort)idx);
+                info, netInfo.m_class, null, netInfo, NetManager.instance.m_lanes.m_buffer[laneId].m_bezier.Position(position), ref ColorCacheNet[laneId][propId], (ushort)idx);
         }
     }
 }

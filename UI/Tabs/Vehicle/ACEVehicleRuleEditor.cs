@@ -42,6 +42,7 @@ namespace Klyte.AssetColorExpander.UI
         private UIListBox m_popupOwner;
 
         private UICheckBox m_allowWagonDifferentColors;
+        private UICheckBox m_overrideLineColor;
         private UIDropDown m_colorMode;
         private UIPanel m_listColorContainer;
         private UIScrollablePanel m_colorListScroll;
@@ -102,6 +103,7 @@ namespace Klyte.AssetColorExpander.UI
             AddLibBox<ACEVehcileRuleLib, VehicleCityDataRuleXml>(helperLib, out m_copySettings, OnCopyRule, out m_pasteSettings, OnPasteRule, out _, null, OnLoadRule, GetRuleSerialized);
 
             AddCheckboxLocale("K45_ACE_VEHICLERULES_ALLOWWAGONWITHDIFFERENTCOLORS", out m_allowWagonDifferentColors, helperAppearence, OnAllowWagonDifferentColors);
+            AddCheckboxLocale("K45_ACE_VEHICLERULES_OVERRIDELINEPREFIXCOLOR", out m_overrideLineColor, helperAppearence, OnOverrideLineColorChange);
 
             AddDropdown(Locale.Get("K45_ACE_COLORMODE"), out m_colorMode, helperAppearence, Enum.GetNames(typeof(ColoringMode)).Select(x => Locale.Get("K45_ACE_COLORINGMODE", x)).ToArray(), OnChangeColoringMode);
             AddButtonInEditorRow(m_colorMode, CommonsSpriteNames.K45_QuestionMark, Help_ColorMode);
@@ -112,7 +114,7 @@ namespace Klyte.AssetColorExpander.UI
             AddCheckboxLocale("K45_ACE_COLORMODE_ALLOWNEUTRALTONES", out m_allowNeutral, helperAppearence, OnAllowNeutralChanged);
 
 
-            KlyteMonoUtils.CreateUIElement(out m_listColorContainer, helperAppearence.Self.transform, "listColors", new UnityEngine.Vector4(0, 0, helperAppearence.Self.width, helperAppearence.Self.height - 80));
+            KlyteMonoUtils.CreateUIElement(out m_listColorContainer, helperAppearence.Self.transform, "listColors", new UnityEngine.Vector4(0, 0, helperAppearence.Self.width, helperAppearence.Self.height - 120));
             KlyteMonoUtils.CreateScrollPanel(m_listColorContainer, out m_colorListScroll, out _, m_listColorContainer.width - 20, m_listColorContainer.height);
             m_colorListScroll.backgroundSprite = "OptionsScrollbarTrack";
             m_colorListScroll.autoLayout = true;
@@ -245,12 +247,12 @@ namespace Klyte.AssetColorExpander.UI
 
                                        m_service.selectedIndex = (int)x.Service;
                                        m_subService.selectedIndex = (int)x.SubService;
-                                       m_level.selectedIndex = (int)x.Level;
+                                       m_level.selectedIndex = (int)x.Level + 1;
                                        m_class.selectedValue = x.ItemClassName;
 
                                        string targetAsset = x.AssetName ?? "";
                                        var entry = VehiclesIndexes.instance.PrefabsLoaded.Where(y => y.Value.name == targetAsset).FirstOrDefault();
-                                       m_assetFilterSelf.text = entry.Key ??"";
+                                       m_assetFilterSelf.text = entry.Key ?? "";
 
 
                                        targetAsset = x.BuildingName ?? "";
@@ -260,6 +262,7 @@ namespace Klyte.AssetColorExpander.UI
                                        ApplyRuleCheck(x);
 
                                        m_allowWagonDifferentColors.isChecked = x.AllowDifferentColorsOnWagons;
+                                       m_overrideLineColor.isChecked = x.IgnoreLineColor;
 
                                        m_colorMode.selectedIndex = (int)x.ColoringMode;
                                        m_allowRed.isChecked = (x.PastelConfig & PastelConfig.AVOID_REDS) == 0;
@@ -406,6 +409,9 @@ namespace Klyte.AssetColorExpander.UI
         }));
 
         private void OnAllowWagonDifferentColors(bool isChecked) => SafeObtain((ref VehicleCityDataRuleXml x) => x.AllowDifferentColorsOnWagons = isChecked);
+
+        private void OnOverrideLineColorChange(bool isChecked) => SafeObtain((ref VehicleCityDataRuleXml x) => x.IgnoreLineColor = isChecked);
+
         private void OnChangeClassFilter(int sel) => SafeObtain((ref VehicleCityDataRuleXml x) =>
         {
             if (sel >= 0)

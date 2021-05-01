@@ -37,12 +37,12 @@ namespace Klyte.AssetColorExpander
         public static ref Color?[] ColorCache => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.VEHICLE];
 
 
-        public static bool PreGetColor_Internal(ushort vehicleId, InfoManager.InfoMode infoMode, ref Color __result, uint randomSeed, bool parked) =>//(ushort instanceID, ref CitizenInstance data, InfoManager.InfoMode infoMode, ref Color __result) =>
+        public static bool PreGetColor_Internal(ushort vehicleId, InfoManager.InfoMode infoMode, ref Color __result, uint randomSeed, bool parked) =>
             ACEColorGenUtils.GetColorGeneric(
                 ref __result,
                 vehicleId,
                 ref AssetColorExpanderMod.Controller.CachedColor[parked ? (int)ACEController.CacheOrder.PARKED_VEHICLE : (int)ACEController.CacheOrder.VEHICLE],
-                infoMode, ColorParametersGetter(randomSeed, parked), parked ? AcceptsParked : Accepts);
+                infoMode, ColorParametersGetter(randomSeed, parked), parked ? AcceptsParked : Accepts());
 
         private static ColorParametersGetter<VehicleAssetFolderRuleXml, VehicleCityDataRuleXml, VehicleInfo> ColorParametersGetter(uint randomSeed, bool isParked) =>
              (
@@ -57,18 +57,23 @@ namespace Klyte.AssetColorExpander
             {
                 ref VehicleParked data = ref VehicleManager.instance.m_parkedVehicles.m_buffer[vehicleId];
                 info = data.Info;
+                pos = default;
             }
             else
             {
                 ref Vehicle data = ref VehicleManager.instance.m_vehicles.m_buffer[vehicleId];
                 info = data.Info;
+                pos = data.m_sourceBuilding != 0 ? BuildingManager.instance.m_buildings.m_buffer[data.m_sourceBuilding].m_position : default;
             }
             assetRules = AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataVehicles;
             rulesGlobal = ACEVehicleConfigRulesData.Instance.Rules;
-            pos = default;
             seed = randomSeed;
         };
-        private static RuleValidator<VehicleCityDataRuleXml, VehicleInfo> Accepts = (id, x, district, park, info) => x.Accepts(id, info);
+        private static RuleValidator<VehicleCityDataRuleXml, VehicleInfo> Accepts() => (id, x, district, park, info) =>
+        {
+            ref Vehicle data = ref VehicleManager.instance.m_vehicles.m_buffer[id];
+            return x.Accepts(id, info, data.m_transportLine);
+        };
         private static RuleValidator<VehicleCityDataRuleXml, VehicleInfo> AcceptsParked = (ushort id, VehicleCityDataRuleXml x, byte district, byte park, VehicleInfo info) => x.AcceptsParked(id, info);
 
 
@@ -99,10 +104,6 @@ namespace Klyte.AssetColorExpander
                 {
                     return true;
                 }
-            }
-            else if (data.m_transportLine != 0)
-            {
-                return true;
             }
 
             return PreGetColor_Internal(vehicleID, infoMode, ref __result, vehicleID, false);

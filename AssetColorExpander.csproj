@@ -184,6 +184,9 @@
     <Compile Include="Libraries\ACECitizenRulesetLib.cs" />
     <Compile Include="Libraries\ACEVehcileRuleLib.cs" />
     <Compile Include="Libraries\ACEVehicleRulesetLib.cs" />
+    <Compile Include="ModShared\BridgeADR.cs" />
+    <Compile Include="ModShared\BridgeADRFallback.cs" />
+    <Compile Include="ModShared\IBridgeADR.cs" />
     <Compile Include="Overrides\ACENetsOverrides.cs" />
     <Compile Include="Overrides\ACEPropPlacedOverrides.cs" />
     <Compile Include="Overrides\ACECitizenOverrides.cs" />
@@ -362,6 +365,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_requiredDLLs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Addresses\Addresses.csproj">
+      <Project>{3518655d-2922-4e78-8875-c38ce7b15adf}</Project>
+      <Name>Addresses</Name>
+      <Aliases>ADR</Aliases>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y "$(TargetPath)" "$(ProjectDir)\_requiredDLLs"

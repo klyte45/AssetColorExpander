@@ -398,7 +398,7 @@ namespace Klyte.AssetColorExpander.UI
 
                                        m_service.selectedIndex = (int)x.Service;
                                        m_subService.selectedIndex = (int)x.SubService;
-                                       m_level.selectedIndex = (int)x.Level;
+                                       m_level.selectedIndex = (int)x.Level+1;
                                        m_class.selectedValue = x.ItemClassName;
                                        m_parentClass.selectedValue = x.ItemClassName;
 
