@@ -1,7 +1,7 @@
 using ColossalFramework.Globalization;
 using ColossalFramework.UI;
 using Klyte.AssetColorExpander.UI;
-using Klyte.Commons.Extensors;
+using Klyte.Commons.Extensions;
 using Klyte.Commons.Interfaces;
 using Klyte.Commons.Utils;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using static Klyte.AssetColorExpander.ACELoadedDataContainer;
 
-[assembly: AssemblyVersion("1.0.0.4")]
+[assembly: AssemblyVersion("1.0.0.*")]
 namespace Klyte.AssetColorExpander
 {
     public class AssetColorExpanderMod : BasicIUserMod<AssetColorExpanderMod, ACEController, ACEPanel>

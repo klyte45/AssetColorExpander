@@ -1,6 +1,6 @@
 ﻿using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.XML;
-using Klyte.Commons.Extensors;
+using Klyte.Commons.Extensions;
 using Klyte.Commons.Utils;
 using System;
 using System.Collections.Generic;

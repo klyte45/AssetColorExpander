@@ -4,11 +4,10 @@ using ColossalFramework.UI;
 using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.Libraries;
 using Klyte.AssetColorExpander.XML;
-using Klyte.Commons.Extensors;
+using Klyte.Commons.Extensions;
 using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -107,21 +106,21 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT_BUILDING"), out m_assetFilterBuilding, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterBuilding);
-            m_popupBuilding = ConfigureListSelectionPopupForUITextField(m_assetFilterBuilding, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(text), OnAssetSelectedBuildingChanged, GetCurrentSelectionNameBuilding);
+            m_popupBuilding = ConfigureListSelectionPopupForUITextField(m_assetFilterBuilding, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(text), OnAssetSelectedBuildingChanged);
             m_popupBuilding.height = 290;
             m_popupBuilding.width -= 20;
 
             AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT_NET"), out m_assetFilterNet, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilterNet);
-            m_popupNet = ConfigureListSelectionPopupForUITextField(m_assetFilterNet, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterNetsByText(text), OnAssetSelectedNetChanged, GetCurrentSelectionNameNet);
+            m_popupNet = ConfigureListSelectionPopupForUITextField(m_assetFilterNet, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterNetsByText(text), OnAssetSelectedNetChanged);
             m_popupNet.height = 290;
             m_popupNet.width -= 20;
 
             AddTextField(Locale.Get("K45_ACE_PROPRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
-            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterPropsByText(text), OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterPropsByText(text), OnAssetSelectedChanged);
             m_popup.height = 290;
             m_popup.width -= 20;
 
@@ -387,50 +386,45 @@ namespace Klyte.AssetColorExpander.UI
             ReloadData();
         }
 
-        private void ReloadData()
-        {
-            SafeObtain((ref PropCityDataRuleXml x) =>
-            {
-                m_name.text = x.SaveName;
+        private void ReloadData() => SafeObtain((ref PropCityDataRuleXml x) =>
+                                   {
+                                       m_name.text = x.SaveName ?? "";
 
-                m_districtWhiteList.isChecked = !x.SelectedDistrictsIsBlacklist;
-                m_districtBlackList.isChecked = x.SelectedDistrictsIsBlacklist;
-                m_districtResolutionOrder.selectedIndex = (int)x.DistrictRestrictionOrder;
+                                       m_districtWhiteList.isChecked = !x.SelectedDistrictsIsBlacklist;
+                                       m_districtBlackList.isChecked = x.SelectedDistrictsIsBlacklist;
+                                       m_districtResolutionOrder.selectedIndex = (int)x.DistrictRestrictionOrder;
 
-                m_ruleFilter.selectedIndex = (int)x.RuleCheckType;
+                                       m_ruleFilter.selectedIndex = (int)x.RuleCheckType;
 
-                m_service.selectedIndex = (int)x.Service;
-                m_subService.selectedIndex = (int)x.SubService;
-                m_level.selectedIndex = (int)x.Level;
-                m_class.selectedValue = x.ItemClassName;
-                m_parentClass.selectedValue = x.ItemClassName;
+                                       m_service.selectedIndex = (int)x.Service;
+                                       m_subService.selectedIndex = (int)x.SubService;
+                                       m_level.selectedIndex = (int)x.Level;
+                                       m_class.selectedValue = x.ItemClassName;
+                                       m_parentClass.selectedValue = x.ItemClassName;
 
-                string targetAsset = x.AssetName ?? "";
-                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilter.text = entry?.Key ?? "";
 
-                targetAsset = x.BuildingName ?? "";
-                entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilterBuilding.text = entry?.Key ?? "";
+                                       string targetAsset = x.AssetName ?? "";
+                                       m_assetFilter.text = PropIndexes.instance.PrefabsLoaded.Where(y => y.Value.name == targetAsset).FirstOrDefault().Key ?? "";
 
-                targetAsset = x.NetName ?? "";
-                entry = AssetColorExpanderMod.Controller?.AssetsCache.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilterNet.text = entry?.Key ?? "";
+                                       targetAsset = x.BuildingName ?? "";
+                                       m_assetFilterBuilding.text = BuildingIndexes.instance.PrefabsLoaded.Where(y => y.Value.name == targetAsset).FirstOrDefault().Key ?? "";
 
-                ApplyRuleCheck(x);
+                                       targetAsset = x.NetName ?? "";
+                                       m_assetFilterNet.text = NetIndexes.instance.PrefabsLoaded.Where(y => y.Value.name == targetAsset).FirstOrDefault().Key ?? "";
 
-                m_colorMode.selectedIndex = (int)x.ColoringMode;
-                m_allowRed.isChecked = (x.PastelConfig & PastelConfig.AVOID_REDS) == 0;
-                m_allowGreen.isChecked = (x.PastelConfig & PastelConfig.AVOID_GREENS) == 0;
-                m_allowBlues.isChecked = (x.PastelConfig & PastelConfig.AVOID_BLUES) == 0;
-                m_allowNeutral.isChecked = (x.PastelConfig & PastelConfig.AVOID_NEUTRALS) == 0;
-                UpdateColorList(ref x);
+                                       ApplyRuleCheck(x);
 
-                ApplyColorUIRules(x);
+                                       m_colorMode.selectedIndex = (int)x.ColoringMode;
+                                       m_allowRed.isChecked = (x.PastelConfig & PastelConfig.AVOID_REDS) == 0;
+                                       m_allowGreen.isChecked = (x.PastelConfig & PastelConfig.AVOID_GREENS) == 0;
+                                       m_allowBlues.isChecked = (x.PastelConfig & PastelConfig.AVOID_BLUES) == 0;
+                                       m_allowNeutral.isChecked = (x.PastelConfig & PastelConfig.AVOID_NEUTRALS) == 0;
+                                       UpdateColorList(ref x);
 
-                UpdateDistrictList(ref x);
-            });
-        }
+                                       ApplyColorUIRules(x);
+
+                                       UpdateDistrictList(ref x);
+                                   });
 
         private void ApplyColorUIRules(PropCityDataRuleXml x)
         {
@@ -581,72 +575,35 @@ namespace Klyte.AssetColorExpander.UI
         });
 
 
-        private string OnAssetSelectedChanged(int sel, string[] options)
-        {
-            string result = "";
-            SafeObtain((ref PropCityDataRuleXml x) =>
-                    {
-                        if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.PropsLoaded.TryGetValue(options[sel], out string assetName))
-                        {
-                            x.AssetName = assetName;
-                            result = m_popup.items[sel];
-                        }
-                        else
-                        {
-                            string targetAsset = x.AssetName ?? "";
-                            System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.PropsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                            result = entry?.Key ?? "";
-                        }
-                        m_assetFilter.text = result;
-                        ApplyRuleCheck(x);
-                    });
-            return result;
-        }
-
-        private string OnAssetSelectedBuildingChanged(int sel, string[] options)
-        {
-
-            string result = "";
-            SafeObtain((ref PropCityDataRuleXml x) =>
-                    {
-                        if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(options[sel], out string assetName))
-                        {
-                            x.BuildingName = assetName;
-                            result = m_popupBuilding.items[sel];
-                        }
-                        else
-                        {
-                            string targetAsset = x.BuildingName ?? "";
-                            KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                            result = entry?.Key ?? "";
-                        }
-                        m_assetFilterBuilding.text = result;
-                        ApplyRuleCheck(x);
-                    });
-            return result;
-        }
-
-        private string OnAssetSelectedNetChanged(int sel, string[] options)
-        {
-            string result = "";
-            SafeObtain((ref PropCityDataRuleXml x) =>
+        private string OnAssetSelectedChanged(string input, int arg1, string[] arg2) =>
+            ACEAssetCache.GetFromInfoIndex<PropIndexes, PropInfo>(input, arg1, arg2, m_assetFilter, (result, info) =>
+            {
+                SafeObtain((ref PropCityDataRuleXml x) =>
                 {
-                    if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.NetsLoaded.TryGetValue(options[sel], out string assetName))
-                    {
-                        x.NetName = assetName;
-                        result = m_popupNet.items[sel];
-                    }
-                    else
-                    {
-                        string targetAsset = x.NetName ?? "";
-                        KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.NetsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                        result = entry?.Key ?? "";
-                    }
-                    m_assetFilterNet.text = result;
+                    x.AssetName = info?.name ?? "";
                     ApplyRuleCheck(x);
                 });
-            return result;
-        }
+            });
+
+        private string OnAssetSelectedBuildingChanged(string input, int arg1, string[] arg2) =>
+            ACEAssetCache.GetFromInfoIndex<BuildingIndexes, BuildingInfo>(input, arg1, arg2, m_assetFilterBuilding, (result, info) =>
+            {
+                SafeObtain((ref PropCityDataRuleXml x) =>
+                {
+                    x.BuildingName = info?.name ?? "";
+                    ApplyRuleCheck(x);
+                });
+            });
+
+        private string OnAssetSelectedNetChanged(string input, int arg1, string[] arg2) =>
+            ACEAssetCache.GetFromInfoIndex<NetIndexes, NetInfo>(input, arg1, arg2, m_assetFilterNet, (result, info) =>
+            {
+                SafeObtain((ref PropCityDataRuleXml x) =>
+                {
+                    x.NetName = info?.name ?? "";
+                    ApplyRuleCheck(x);
+                });
+            });
 
         private void OnChangeClassFilter(int sel) => SafeObtain((ref PropCityDataRuleXml x) =>
         {
@@ -744,92 +701,86 @@ namespace Klyte.AssetColorExpander.UI
                 x.PastelConfig |= PastelConfig.AVOID_NEUTRALS;
             }
         });
-        private void OnExport()
-        {
-            SafeObtain((ref PropCityDataRuleXml x) =>
-            {
-                string targetAsset = null;
-                string targetFilename = null;
-                switch (x.RuleCheckType)
-                {
-                    case RuleCheckTypeProp.ASSET_NAME_BUILDING:
-                    case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
-                        targetAsset = (x.BuildingName);
-                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_PROPS;
-                        break;
-                    case RuleCheckTypeProp.ASSET_NAME_NET:
-                    case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
-                        targetAsset = (x.NetName);
-                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_NET_PROPS;
-                        break;
-                    case RuleCheckTypeProp.ASSET_NAME_SELF:
-                        targetAsset = (x.AssetName);
-                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_PROP;
-                        break;
-                }
-                if (targetAsset != null)
-                {
-                    FileUtils.DoInPrefabFolder(targetAsset,
-                                (folder) =>
-                                {
-                                    string targetDataSerial = GetRuleSerialized();
-                                    ACERulesetContainer<PropAssetFolderRuleXml> container;
-                                    if (File.Exists(Path.Combine(folder, targetFilename)))
-                                    {
-                                        try
-                                        {
-                                            container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, targetFilename)));
-                                        }
-                                        catch
-                                        {
-                                            container = new ACERulesetContainer<PropAssetFolderRuleXml>();
-                                        }
-                                    }
-                                    else
-                                    {
-                                        container = new ACERulesetContainer<PropAssetFolderRuleXml>();
-                                    }
+        private void OnExport() => SafeObtain((ref PropCityDataRuleXml x) =>
+                                 {
+                                     string targetAsset = null;
+                                     string targetFilename = null;
+                                     switch (x.RuleCheckType)
+                                     {
+                                         case RuleCheckTypeProp.ASSET_NAME_BUILDING:
+                                         case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
+                                             targetAsset = (x.BuildingName);
+                                             targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_PROPS;
+                                             break;
+                                         case RuleCheckTypeProp.ASSET_NAME_NET:
+                                         case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
+                                             targetAsset = (x.NetName);
+                                             targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_NET_PROPS;
+                                             break;
+                                         case RuleCheckTypeProp.ASSET_NAME_SELF:
+                                             targetAsset = (x.AssetName);
+                                             targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_PROP;
+                                             break;
+                                     }
+                                     if (targetAsset != null)
+                                     {
+                                         FileUtils.DoInPrefabFolder(targetAsset,
+                                                     (folder) =>
+                                                     {
+                                                         string targetDataSerial = GetRuleSerialized();
+                                                         ACERulesetContainer<PropAssetFolderRuleXml> container;
+                                                         if (File.Exists(Path.Combine(folder, targetFilename)))
+                                                         {
+                                                             try
+                                                             {
+                                                                 container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, targetFilename)));
+                                                             }
+                                                             catch
+                                                             {
+                                                                 container = new ACERulesetContainer<PropAssetFolderRuleXml>();
+                                                             }
+                                                         }
+                                                         else
+                                                         {
+                                                             container = new ACERulesetContainer<PropAssetFolderRuleXml>();
+                                                         }
 
-                                    PropAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<PropAssetFolderRuleXml>(targetDataSerial);
-                                    container.m_dataArray = container.m_dataArray.Where(x => x.AssetName != asAssetRule.AssetName).Union(new PropAssetFolderRuleXml[] { asAssetRule }).ToArray();
-                                    string targetData = XmlUtils.DefaultXmlSerialize(container);
-                                    File.WriteAllText(Path.Combine(folder, targetFilename), targetData);
-                                });
-                }
-            });
-        }
-        private void OnExportLocal()
-        {
-            SafeObtain((ref PropCityDataRuleXml x) =>
-            {
-                string targetFilename = null;
-                switch (x.RuleCheckType)
-                {
-                    case RuleCheckTypeProp.ASSET_NAME_BUILDING:
-                    case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
-                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL;
-                        break;
-                    case RuleCheckTypeProp.ASSET_NAME_NET:
-                    case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
-                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_NET_PROPS_GLOBAL;
-                        break;
-                    case RuleCheckTypeProp.ASSET_NAME_SELF:
-                        targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_PROP;
-                        break;
-                }
-                if (targetFilename != null)
-                {
-                    FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
-                    string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, targetFilename);
-                    string currentDataSerial = GetRuleSerialized();
-                    PropAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<PropAssetFolderRuleXml>(currentDataSerial);
-                    ACERulesetContainer<PropAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<PropAssetFolderRuleXml>();
-                    container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new PropAssetFolderRuleXml[] { asAssetRule }).ToArray();
-                    File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
-                }
-            }
+                                                         PropAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<PropAssetFolderRuleXml>(targetDataSerial);
+                                                         container.m_dataArray = container.m_dataArray.Where(x => x.AssetName != asAssetRule.AssetName).Union(new PropAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                                                         string targetData = XmlUtils.DefaultXmlSerialize(container);
+                                                         File.WriteAllText(Path.Combine(folder, targetFilename), targetData);
+                                                     });
+                                     }
+                                 });
+        private void OnExportLocal() => SafeObtain((ref PropCityDataRuleXml x) =>
+                                      {
+                                          string targetFilename = null;
+                                          switch (x.RuleCheckType)
+                                          {
+                                              case RuleCheckTypeProp.ASSET_NAME_BUILDING:
+                                              case RuleCheckTypeProp.ASSET_NAME_BUILDING_SELF:
+                                                  targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING_PROPS_GLOBAL;
+                                                  break;
+                                              case RuleCheckTypeProp.ASSET_NAME_NET:
+                                              case RuleCheckTypeProp.ASSET_NAME_NET_SELF:
+                                                  targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_NET_PROPS_GLOBAL;
+                                                  break;
+                                              case RuleCheckTypeProp.ASSET_NAME_SELF:
+                                                  targetFilename = ACELoadedDataContainer.DEFAULT_XML_NAME_PROP;
+                                                  break;
+                                          }
+                                          if (targetFilename != null)
+                                          {
+                                              FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
+                                              string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, targetFilename);
+                                              string currentDataSerial = GetRuleSerialized();
+                                              PropAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<PropAssetFolderRuleXml>(currentDataSerial);
+                                              ACERulesetContainer<PropAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<PropAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<PropAssetFolderRuleXml>();
+                                              container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new PropAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                                              File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
+                                          }
+                                      }
             );
-        }
     }
 
 }

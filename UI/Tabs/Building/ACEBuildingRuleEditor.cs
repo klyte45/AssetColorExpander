@@ -4,11 +4,10 @@ using ColossalFramework.UI;
 using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.Libraries;
 using Klyte.AssetColorExpander.XML;
-using Klyte.Commons.Extensors;
+using Klyte.Commons.Extensions;
 using Klyte.Commons.UI.SpriteNames;
 using Klyte.Commons.Utils;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -98,7 +97,7 @@ namespace Klyte.AssetColorExpander.UI
             AddTextField(Locale.Get("K45_ACE_BUILDINGRULES_ASSETSELECT"), out m_assetFilter, helperSettings, null);
 
             KlyteMonoUtils.UiTextFieldDefaultsForm(m_assetFilter);
-            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(text), OnAssetSelectedChanged, GetCurrentSelectionName);
+            m_popup = ConfigureListSelectionPopupForUITextField(m_assetFilter, (text) => AssetColorExpanderMod.Controller?.AssetsCache.FilterBuildingsByText(text), OnAssetSelectedChanged);
             m_popup.height = 290;
             m_popup.width -= 20;
 
@@ -354,41 +353,37 @@ namespace Klyte.AssetColorExpander.UI
             ReloadData();
         }
 
-        private void ReloadData()
-        {
-            SafeObtain((ref BuildingCityDataRuleXml x) =>
-            {
-                m_name.text = x.SaveName;
+        private void ReloadData() => SafeObtain((ref BuildingCityDataRuleXml x) =>
+                                   {
+                                       m_name.text = x.SaveName ?? "";
 
-                m_districtWhiteList.isChecked = !x.SelectedDistrictsIsBlacklist;
-                m_districtBlackList.isChecked = x.SelectedDistrictsIsBlacklist;
-                m_districtResolutionOrder.selectedIndex = (int)x.DistrictRestrictionOrder;
+                                       m_districtWhiteList.isChecked = !x.SelectedDistrictsIsBlacklist;
+                                       m_districtBlackList.isChecked = x.SelectedDistrictsIsBlacklist;
+                                       m_districtResolutionOrder.selectedIndex = (int)x.DistrictRestrictionOrder;
 
-                m_ruleFilter.selectedIndex = (int)x.RuleCheckType;
+                                       m_ruleFilter.selectedIndex = (int)x.RuleCheckType;
 
-                m_service.selectedIndex = (int)x.Service;
-                m_subService.selectedIndex = (int)x.SubService;
-                m_level.selectedIndex = (int)x.Level;
-                m_class.selectedValue = x.ItemClassName;
+                                       m_service.selectedIndex = (int)x.Service;
+                                       m_subService.selectedIndex = (int)x.SubService;
+                                       m_level.selectedIndex = (int)x.Level;
+                                       m_class.selectedValue = x.ItemClassName ?? "";
 
-                string targetAsset = x.AssetName ?? "";
-                KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                m_assetFilter.text = entry?.Key ?? "";
+                                       var targetAsset = x.AssetName ?? "";
+                                       m_assetFilter.text = BuildingIndexes.instance.PrefabsLoaded.Where(y => y.Value.name == targetAsset).FirstOrDefault().Key ?? "";
 
-                ApplyRuleCheck(x);
+                                       ApplyRuleCheck(x);
 
-                m_colorMode.selectedIndex = (int)x.ColoringMode;
-                m_allowRed.isChecked = (x.PastelConfig & PastelConfig.AVOID_REDS) == 0;
-                m_allowGreen.isChecked = (x.PastelConfig & PastelConfig.AVOID_GREENS) == 0;
-                m_allowBlues.isChecked = (x.PastelConfig & PastelConfig.AVOID_BLUES) == 0;
-                m_allowNeutral.isChecked = (x.PastelConfig & PastelConfig.AVOID_NEUTRALS) == 0;
-                UpdateColorList(ref x);
+                                       m_colorMode.selectedIndex = (int)x.ColoringMode;
+                                       m_allowRed.isChecked = (x.PastelConfig & PastelConfig.AVOID_REDS) == 0;
+                                       m_allowGreen.isChecked = (x.PastelConfig & PastelConfig.AVOID_GREENS) == 0;
+                                       m_allowBlues.isChecked = (x.PastelConfig & PastelConfig.AVOID_BLUES) == 0;
+                                       m_allowNeutral.isChecked = (x.PastelConfig & PastelConfig.AVOID_NEUTRALS) == 0;
+                                       UpdateColorList(ref x);
 
-                ApplyColorUIRules(x);
+                                       ApplyColorUIRules(x);
 
-                UpdateDistrictList(ref x);
-            });
-        }
+                                       UpdateDistrictList(ref x);
+                                   });
 
         private void ApplyColorUIRules(BuildingCityDataRuleXml x)
         {
@@ -488,30 +483,16 @@ namespace Klyte.AssetColorExpander.UI
         });
 
 
-        private string OnAssetSelectedChanged(int sel, string[] options)
-        {
-            string result = "";
-            SafeObtain((ref BuildingCityDataRuleXml x) =>
-                       {
-                           if (sel >= 0 && AssetColorExpanderMod.Controller.AssetsCache.BuildingsLoaded.TryGetValue(options[sel], out string assetName))
-                           {
-                               x.AssetName = assetName;
-                               result = options[sel];
-                               m_assetFilter.text = result;
+        private string OnAssetSelectedChanged(string input, int arg1, string[] arg2) =>
+            ACEAssetCache.GetFromInfoIndex<BuildingIndexes, BuildingInfo>(input, arg1, arg2, m_assetFilter, (result, info) =>
+            {
+                SafeObtain((ref BuildingCityDataRuleXml x) =>
+                {
+                    x.AssetName = info?.name ?? "";
+                    ApplyRuleCheck(x);
+                });
+            });
 
-                           }
-                           else
-                           {
-                               string targetAsset = x.AssetName ?? "";
-                               System.Collections.Generic.KeyValuePair<string, string>? entry = AssetColorExpanderMod.Controller?.AssetsCache.BuildingsLoaded.Where(y => y.Value == targetAsset).FirstOrDefault();
-                               result = entry?.Key ?? "";
-                               m_assetFilter.text = result;
-                           }
-                           ApplyRuleCheck(x);
-                       });
-
-            return result;
-        }
 
         private void OnChangeClassFilter(int sel) => SafeObtain((ref BuildingCityDataRuleXml x) =>
         {
@@ -595,50 +576,44 @@ namespace Klyte.AssetColorExpander.UI
             }
         });
 
-        private void OnExport()
-        {
-            SafeObtain((ref BuildingCityDataRuleXml x) => FileUtils.DoInPrefabFolder(x.AssetName,
-                (folder) =>
-                {
-                    string targetDataSerial = GetRuleSerialized();
-                    ACERulesetContainer<BuildingAssetFolderRuleXml> container;
-                    if (File.Exists(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING)))
-                    {
-                        try
-                        {
-                            container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<BuildingAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING)));
-                        }
-                        catch
-                        {
-                            container = new ACERulesetContainer<BuildingAssetFolderRuleXml>();
-                        }
-                    }
-                    else
-                    {
-                        container = new ACERulesetContainer<BuildingAssetFolderRuleXml>();
-                    }
+        private void OnExport() => SafeObtain((ref BuildingCityDataRuleXml x) => FileUtils.DoInPrefabFolder(x.AssetName,
+                                     (folder) =>
+                                     {
+                                         string targetDataSerial = GetRuleSerialized();
+                                         ACERulesetContainer<BuildingAssetFolderRuleXml> container;
+                                         if (File.Exists(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING)))
+                                         {
+                                             try
+                                             {
+                                                 container = XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<BuildingAssetFolderRuleXml>>(File.ReadAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING)));
+                                             }
+                                             catch
+                                             {
+                                                 container = new ACERulesetContainer<BuildingAssetFolderRuleXml>();
+                                             }
+                                         }
+                                         else
+                                         {
+                                             container = new ACERulesetContainer<BuildingAssetFolderRuleXml>();
+                                         }
 
-                    BuildingAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<BuildingAssetFolderRuleXml>(targetDataSerial);
-                    container.m_dataArray = container.m_dataArray.Where(x => x.AssetName != asAssetRule.AssetName).Union(new BuildingAssetFolderRuleXml[] { asAssetRule }).ToArray();
-                    string targetData = XmlUtils.DefaultXmlSerialize(container);
-                    File.WriteAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING), targetData);
-                })
+                                         BuildingAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<BuildingAssetFolderRuleXml>(targetDataSerial);
+                                         container.m_dataArray = container.m_dataArray.Where(x => x.AssetName != asAssetRule.AssetName).Union(new BuildingAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                                         string targetData = XmlUtils.DefaultXmlSerialize(container);
+                                         File.WriteAllText(Path.Combine(folder, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING), targetData);
+                                     })
             );
-        }
-        private void OnExportLocal()
-        {
-            SafeObtain((ref BuildingCityDataRuleXml x) =>
-                {
-                    FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
-                    string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING);
-                    string currentDataSerial = GetRuleSerialized();
-                    BuildingAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<BuildingAssetFolderRuleXml>(currentDataSerial);
-                    ACERulesetContainer<BuildingAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<BuildingAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<BuildingAssetFolderRuleXml>();
-                    container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new BuildingAssetFolderRuleXml[] { asAssetRule }).ToArray();
-                    File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
-                }
+        private void OnExportLocal() => SafeObtain((ref BuildingCityDataRuleXml x) =>
+                                          {
+                                              FileUtils.EnsureFolderCreation(ACEController.FOLDER_PATH_GENERAL_CONFIG);
+                                              string filename = Path.Combine(ACEController.FOLDER_PATH_GENERAL_CONFIG, ACELoadedDataContainer.DEFAULT_XML_NAME_BUILDING);
+                                              string currentDataSerial = GetRuleSerialized();
+                                              BuildingAssetFolderRuleXml asAssetRule = XmlUtils.DefaultXmlDeserialize<BuildingAssetFolderRuleXml>(currentDataSerial);
+                                              ACERulesetContainer<BuildingAssetFolderRuleXml> container = File.Exists(filename) ? XmlUtils.DefaultXmlDeserialize<ACERulesetContainer<BuildingAssetFolderRuleXml>>(File.ReadAllText(filename)) : new ACERulesetContainer<BuildingAssetFolderRuleXml>();
+                                              container.m_dataArray = container.m_dataArray.Where(y => y.AssetName != asAssetRule.AssetName).Union(new BuildingAssetFolderRuleXml[] { asAssetRule }).ToArray();
+                                              File.WriteAllText(filename, XmlUtils.DefaultXmlSerialize(container));
+                                          }
             );
-        }
     }
 
 }

@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 namespace Klyte.AssetColorExpander.Data
 {
 
-    public class ACEPropConfigRulesData : DataExtensorBase<ACEPropConfigRulesData>
+    public class ACEPropConfigRulesData : DataExtensionBase<ACEPropConfigRulesData>
     {
         [XmlElement("rules")]
         public ACERulesetContainer<PropCityDataRuleXml> Rules { get; private set; } = new ACERulesetContainer<PropCityDataRuleXml>();
