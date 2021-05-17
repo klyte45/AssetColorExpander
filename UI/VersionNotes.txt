@@ -12,3 +12,4 @@ Enjoy! =V
 <color yellow>Update r1:</color> Fixed some props in buildings not getting the right color (and spamming the game logs)
 <color yellow>Update r3:</color> Added <color cyan>More Vehicles</color> support!
 <color yellow>Update r4:</color> Fixed error that was preventing segments to be drawn in screen (and generating exception log)
+<color yellow>Update r? (17/MAY/21):</color> Fixing garbled text issues when loading the city.
