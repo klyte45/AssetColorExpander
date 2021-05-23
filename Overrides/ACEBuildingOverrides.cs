@@ -36,6 +36,12 @@ namespace Klyte.AssetColorExpander
         }
         private static bool Accepts(ushort id, BuildingCityDataRuleXml x, byte district, byte park, BuildingInfo info) => x.Accepts(info, district, park);
 
-        public static void AfterReleaseBuilding(ushort building) => AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING][building] = null;
+        public static void AfterReleaseBuilding(ushort building)
+        {
+            if (LoadingManager.instance.m_loadingComplete)
+            {
+                AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.BUILDING][building] = null;
+            }
+        }
     }
 }
