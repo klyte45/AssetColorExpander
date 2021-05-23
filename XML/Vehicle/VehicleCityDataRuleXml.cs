@@ -17,12 +17,19 @@ namespace Klyte.AssetColorExpander.XML
         public string AssetName { get; set; }
         [XmlAttribute]
         public string BuildingName { get; set; }
+        [XmlAttribute]
+        public bool IgnoreLineColor { get; set; }
 
         [XmlAttribute]
         public RuleCheckTypeVehicle RuleCheckType { get; set; }
 
-        internal bool Accepts(ushort vehicleId, VehicleInfo info)
+        internal bool Accepts(ushort vehicleId, VehicleInfo info, int lineId)
         {
+            if (!IgnoreLineColor && lineId != 0)
+            {
+                return false;
+            }
+
             switch (RuleCheckType)
             {
                 case RuleCheckTypeVehicle.ITEM_CLASS:

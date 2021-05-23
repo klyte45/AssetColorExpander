@@ -1,8 +1,7 @@
 ﻿using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.XML;
-using Klyte.Commons.Extensors;
-using Klyte.Commons.Utils;
-using System.Linq;
+using Klyte.Commons.Extensions;
+using System.Collections.Generic;
 using UnityEngine;
 using static Klyte.AssetColorExpander.ACEController;
 
@@ -16,48 +15,28 @@ namespace Klyte.AssetColorExpander
             AddRedirect(typeof(CitizenManager).GetMethod("ReleaseCitizenInstance"), null, typeof(ACECitizenOverrides).GetMethod("AfterReleaseCitizenInstance", RedirectorUtils.allFlags));
         }
 
-        public static ref Color?[] ColorCache => ref AssetColorExpanderMod.Controller.CachedColor[(int)CacheOrder.CITIZEN];
-        public static ref bool[] RulesUpdated => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)CacheOrder.CITIZEN];
+        public static void AfterReleaseCitizenInstance(ushort instance) => AssetColorExpanderMod.Controller.CachedColor[(int)CacheOrder.CITIZEN][instance] = null;
 
-        public static bool PreGetColor(ushort instanceID, ref CitizenInstance data, InfoManager.InfoMode infoMode, ref Color __result)
+        public static bool PreGetColor(ushort instanceID, ref CitizenInstance data, InfoManager.InfoMode infoMode, ref Color __result) =>
+            ACEColorGenUtils.GetColorGeneric<CitizenAssetFolderRuleXml, CitizenCityDataRuleXml, CitizenInfo>(
+                ref __result,
+                instanceID,
+                ref AssetColorExpanderMod.Controller.CachedColor[(int)CacheOrder.CITIZEN],
+                infoMode, ColorParametersGetter, Accepts, (x, y) => instanceID);
+
+        private static void ColorParametersGetter(
+            ushort id,
+             out ACERulesetContainer<CitizenCityDataRuleXml> rulesGlobal,
+             out Dictionary<string, CitizenAssetFolderRuleXml> assetRules,
+             out CitizenInfo info,
+             out Vector3 pos)
         {
-
-            if (infoMode != InfoManager.InfoMode.None)
-            {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR CITIZEN: {instanceID} INFO = {infoMode}");
-                return true;
-            }
-            if (RulesUpdated[instanceID])
-            {
-                if (ColorCache[instanceID] == null)
-                {
-                    return true;
-                }
-                __result = ColorCache[instanceID] ?? Color.clear;
-                return false;
-            }
-
-            string dataName = data.Info?.name;
-            BasicColorConfigurationXml itemData = null;
-            CitizenInfo info = data.Info;
-            itemData = ACECitizenConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(info)).OrderBy(x => x.First).FirstOrDefault()?.Second;
-            if (itemData == null || itemData.ColoringMode == ColoringMode.SKIP)
-            {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR CITIZEN: {instanceID} - {itemData?.ColoringMode} not found");
-                ColorCache[instanceID] = null;
-                RulesUpdated[instanceID] = true;
-                return true;
-            }
-            LogUtils.DoLog($"GETTING COLOR FOR CITIZEN: {instanceID}");
-            return ACEColorGenUtils.GetColor(instanceID, ref __result, itemData, ref ColorCache[instanceID], ref RulesUpdated[instanceID]);
+            ref CitizenInstance data = ref CitizenManager.instance.m_instances.m_buffer[id];
+            assetRules = AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataCitizens;
+            rulesGlobal = ACECitizenConfigRulesData.Instance.Rules;
+            info = data.Info;
+            pos = default;
         }
-
-        public static void AfterReleaseCitizenInstance(ushort instance)
-        {
-            if (AssetColorExpanderMod.Controller != null && RulesUpdated != null)
-            {
-                RulesUpdated[instance] = false;
-            }
-        }
+        private static bool Accepts(ushort id, CitizenCityDataRuleXml x, byte district, byte park, CitizenInfo info) => x.Accepts(info);
     }
 }

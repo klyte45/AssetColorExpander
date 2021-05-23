@@ -64,12 +64,12 @@
     <Compile Include="ACEClassesCache.cs" />
     <Compile Include="ACEController.cs" />
     <Compile Include="ACELoadedDataContainer.cs" />
-    <Compile Include="commons\Extensors\Redirector.cs" />
-    <Compile Include="commons\Extensors\UI\CheckboxOrdernatedList.cs" />
-    <Compile Include="commons\Extensors\UI\NumberedColorList.cs" />
-    <Compile Include="commons\Extensors\UI\TextList.cs" />
-    <Compile Include="commons\Extensors\UI\UIHelperExtended.cs" />
-    <Compile Include="commons\Extensors\UI\UITabstripAutoResize.cs" />
+    <Compile Include="commons\Extensions\Redirector.cs" />
+    <Compile Include="commons\Extensions\UI\CheckboxOrdernatedList.cs" />
+    <Compile Include="commons\Extensions\UI\NumberedColorList.cs" />
+    <Compile Include="commons\Extensions\UI\TextList.cs" />
+    <Compile Include="commons\Extensions\UI\UIHelperExtended.cs" />
+    <Compile Include="commons\Extensions\UI\UITabstripAutoResize.cs" />
     <Compile Include="commons\Interfaces\BaseController.cs" />
     <Compile Include="commons\Interfaces\BasicIUserMod.cs" />
     <Compile Include="commons\Interfaces\BasicIUserModSimplified.cs" />
@@ -83,24 +83,28 @@
     <Compile Include="commons\Interfaces\ITimeable.cs" />
     <Compile Include="commons\Interfaces\IViewStartActions.cs" />
     <Compile Include="commons\Interfaces\Warehouse\ConfigWarehouseBase.cs" />
-    <Compile Include="commons\Interfaces\Warehouse\DataExtensorBase.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\DataContainer.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\DataExtensionBase.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\DataExtensionLibBase.cs" />
     <Compile Include="commons\Interfaces\Warehouse\ExtensionInterface2LevelIntImpl.cs" />
     <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceDictionaryByEnumImpl.cs" />
     <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceDictionaryByUintImpl.cs" />
     <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceDictionaryStructValSimplImpl.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceIndexableImpl.cs" />
     <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceListImpl .cs" />
     <Compile Include="commons\Interfaces\Warehouse\ExtensionInterfaceSingleImpl.cs" />
-    <Compile Include="commons\Interfaces\Warehouse\ExtensorContainer.cs" />
-    <Compile Include="commons\Interfaces\Warehouse\IDataExtensor.cs" />
-    <Compile Include="commons\Interfaces\Warehouse\IDataExtensorLegacy.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\IDataExtension.cs" />
+    <Compile Include="commons\Interfaces\Warehouse\IDataExtensionLegacy.cs" />
     <Compile Include="commons\Libraries\BasicLib.cs" />
     <Compile Include="commons\Libraries\LibBaseData.cs" />
     <Compile Include="commons\Libraries\LibBaseFile.cs" />
     <Compile Include="commons\Redirectors\UIDynamicFontRendererRedirector.cs" />
     <Compile Include="commons\Redirectors\UIDynamicPanelsRedirector.cs" />
     <Compile Include="commons\Redirectors\UIViewRedirector.cs" />
+    <Compile Include="commons\Redirectors\UIWorkshopAssetRedirector.cs" />
     <Compile Include="commons\Tools\BasicBuildingTool.cs" />
     <Compile Include="commons\Tools\BasicNetTool.cs" />
+    <Compile Include="commons\Tools\BasicVehicleTool.cs" />
     <Compile Include="commons\UI\AVOPreviewRenderer.cs" />
     <Compile Include="commons\UI\BasicRulesList.cs" />
     <Compile Include="commons\UI\DefaultEditorUILib.cs" />
@@ -110,6 +114,7 @@
     <Compile Include="commons\UI\SpriteNames\LineIconSpriteNames.cs" />
     <Compile Include="commons\UI\TLMAgesChartPanel.cs" />
     <Compile Include="commons\UI\TLMWorkersChartPanel.cs" />
+    <Compile Include="commons\UI\UIPagingBar.cs" />
     <Compile Include="commons\UI\UIRadialChartExtended.cs" />
     <Compile Include="commons\Utils\BuildingUtils.cs" />
     <Compile Include="commons\Utils\DistrictUtils.cs" />
@@ -120,12 +125,14 @@
     <Compile Include="commons\Utils\KlyteResourceLoader.cs" />
     <Compile Include="commons\Utils\LogUtils.cs" />
     <Compile Include="commons\Utils\MapUtils.cs" />
+    <Compile Include="commons\Utils\MeshUtils.cs" />
     <Compile Include="commons\Utils\NumberingUtils.cs" />
     <Compile Include="commons\Utils\PastelConfig.cs" />
     <Compile Include="commons\Utils\PluginUtils.cs" />
-    <Compile Include="commons\Utils\PrefabUtils.cs" />
+    <Compile Include="commons\Utils\PrefabIndexes.cs" />
     <Compile Include="commons\Utils\RandomPastelColorGenerator.cs" />
     <Compile Include="commons\Utils\ReflectionUtils.cs" />
+    <Compile Include="commons\Utils\RenderOverlayUtils.cs" />
     <Compile Include="commons\Utils\RoadSearchUtils.cs" />
     <Compile Include="commons\Utils\SegmentUtils.cs" />
     <Compile Include="commons\Utils\SerializationUtils.cs" />
@@ -164,6 +171,7 @@
     <Compile Include="commons\Utils\UtilitiesClasses\TimeableList.cs" />
     <Compile Include="commons\Utils\UtilitiesClasses\Tuple.cs" />
     <Compile Include="commons\Utils\UtilitiesClasses\VectorsXml.cs" />
+    <Compile Include="commons\Utils\UtilitiesClasses\XmlDictionary.cs" />
     <Compile Include="commons\Utils\VehicleUtils.cs" />
     <Compile Include="commons\Utils\XmlUtils.cs" />
     <Compile Include="commons\Utils\ZipUtils.cs" />
@@ -176,6 +184,9 @@
     <Compile Include="Libraries\ACECitizenRulesetLib.cs" />
     <Compile Include="Libraries\ACEVehcileRuleLib.cs" />
     <Compile Include="Libraries\ACEVehicleRulesetLib.cs" />
+    <Compile Include="ModShared\BridgeADR.cs" />
+    <Compile Include="ModShared\BridgeADRFallback.cs" />
+    <Compile Include="ModShared\IBridgeADR.cs" />
     <Compile Include="Overrides\ACENetsOverrides.cs" />
     <Compile Include="Overrides\ACEPropPlacedOverrides.cs" />
     <Compile Include="Overrides\ACECitizenOverrides.cs" />
@@ -272,7 +283,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="commons\LICENSE" />
     <None Include="commons\README.md" />
+    <None Include="commons\UI\i18n\cn.properties" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -290,6 +303,7 @@
     <Content Include="commons\UI\Images\%25K45_DepotIcon.png" />
     <Content Include="commons\UI\Images\%25K45_DiamondIcon.png" />
     <Content Include="commons\UI\Images\%25K45_Down.png" />
+    <Content Include="commons\UI\Images\%25K45_Dropper.png" />
     <Content Include="commons\UI\Images\%25K45_Export.png" />
     <Content Include="commons\UI\Images\%25K45_FontIcon.png" />
     <Content Include="commons\UI\Images\%25K45_HeptagonIcon.png" />
@@ -311,6 +325,7 @@
     <Content Include="commons\UI\Images\%25K45_New.png" />
     <Content Include="commons\UI\Images\%25K45_OctagonIcon.png" />
     <Content Include="commons\UI\Images\%25K45_OvalIcon.png" />
+    <Content Include="commons\UI\Images\%25K45_PaintBucket.png" />
     <Content Include="commons\UI\Images\%25K45_ParachuteIcon.png" />
     <Content Include="commons\UI\Images\%25K45_Paste.png" />
     <Content Include="commons\UI\Images\%25K45_PentagonIcon.png" />
@@ -345,14 +360,18 @@
     <Content Include="commons\UI\Images\%25K45_X.png" />
     <Content Include="commons\UI\Images\base.psd" />
     <Content Include="commons\UI\Images\bordersDescriptor.txt" />
-    <Content Include="commons\UI\Images\lineFormat.png" />
-    <Content Include="commons\UI\Images\lineFormat.psd" />
-    <Content Include="commons\UI\Images\lineFormats.psd" />
     <Content Include="commons\UI\Images\sprites.psd" />
     <Content Include="UI\Images\icon.psd" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_requiredDLLs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Addresses\Addresses.csproj">
+      <Project>{3518655d-2922-4e78-8875-c38ce7b15adf}</Project>
+      <Name>Addresses</Name>
+      <Aliases>ADR</Aliases>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y "$(TargetPath)" "$(ProjectDir)\_requiredDLLs"

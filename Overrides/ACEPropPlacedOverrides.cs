@@ -2,11 +2,10 @@
 using Harmony;
 using Klyte.AssetColorExpander.Data;
 using Klyte.AssetColorExpander.XML;
-using Klyte.Commons.Extensors;
+using Klyte.Commons.Extensions;
 using Klyte.Commons.Utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
@@ -27,55 +26,10 @@ namespace Klyte.AssetColorExpander
 
             AddRedirect(typeof(PropManager).GetMethod("ReleaseProp"), null, typeof(ACEPropPlacedOverrides).GetMethod("AfterReleaseProp", RedirectorUtils.allFlags));
         }
-
-        //public static Dictionary<string, BuildingAssetFolderRuleXml> AssetsRules => AssetColorExpanderMod.Controller?.m_colorConfigDataBuildings;
         public static ref Color?[] ColorCachePlaced => ref AssetColorExpanderMod.Controller.CachedColor[(int)ACEController.CacheOrder.PROP_PLACED];
-        public static ref bool[] RulesUpdatedPlaced => ref AssetColorExpanderMod.Controller.UpdatedRules[(int)ACEController.CacheOrder.PROP_PLACED];
         public static ref Color?[][] ColorCacheBuilding => ref AssetColorExpanderMod.Controller.CachedColorSubPropsBuildings;
-        public static ref bool[][] RulesUpdatedBuilding => ref AssetColorExpanderMod.Controller.UpdatedRulesSubPropsBuildings;
         public static ref Color?[][][] ColorCacheNet => ref AssetColorExpanderMod.Controller.CachedColorSubPropsNets;
-        public static ref bool[][][] RulesUpdatedNet => ref AssetColorExpanderMod.Controller.UpdatedRulesSubPropsNets;
 
-        public static Color PreGetColor(ref Randomizer randomizer, uint seed, PropInfo propInfo, ItemClass parentItemClass, BuildingInfo buildingInfo, NetInfo netInfo, Vector3 position, ref Color? colorCacheItem, ref bool rulesUpdatedItem)
-        {
-
-            if (rulesUpdatedItem)
-            {
-                return colorCacheItem ?? propInfo.GetColor(ref randomizer);
-            }
-
-            string dataName = propInfo?.name;
-            BasicColorConfigurationXml itemData;
-
-            byte district = DistrictManager.instance.GetDistrict(position);
-            byte park = DistrictManager.instance.GetPark(position);
-            itemData = ACEPropConfigRulesData.Instance.Rules.m_dataArray.Select((x, y) => Tuple.New(y, x)).Where(x => x.Second.Accepts(propInfo.m_class, parentItemClass, propInfo?.name, buildingInfo?.name, netInfo?.name, district, park)).OrderBy(x => x.First).FirstOrDefault()?.Second;
-
-            rulesUpdatedItem = true;
-            Color result = default;
-
-            if (itemData == null || itemData.ColoringMode == ColoringMode.SKIP || ACEColorGenUtils.GetColor(seed, ref result, itemData, ref colorCacheItem, ref rulesUpdatedItem))
-            {
-                LogUtils.DoLog($"NOT GETTING COLOR FOR PROP: {seed} - \"{itemData?.ColoringMode}\" not available");
-                colorCacheItem = null;
-                rulesUpdatedItem = true;
-                return propInfo.GetColor(ref randomizer);
-            }
-            else
-            {
-                LogUtils.DoLog($" GETTING COLOR FOR PROP: {seed} = {result} ");
-                return result;
-            }
-
-        }
-
-        public static void AfterReleaseProp(ushort prop)
-        {
-            if (AssetColorExpanderMod.Controller != null && RulesUpdatedPlaced != null)
-            {
-                RulesUpdatedPlaced[prop] = false;
-            }
-        }
 
         public static IEnumerable<CodeInstruction> DetourRenderInstance(IEnumerable<CodeInstruction> instr)
         {
@@ -129,7 +83,6 @@ namespace Klyte.AssetColorExpander
                 {
                     instrList.RemoveAt(i);
                     instrList.InsertRange(i, new List<CodeInstruction>{
-                        new CodeInstruction(OpCodes.Ldarga_S, 0),
                         new CodeInstruction( OpCodes.Ldarg_2),
                         new CodeInstruction( OpCodes.Ldarg_3),
                         new CodeInstruction( OpCodes.Ldarg_S,4),
@@ -150,56 +103,73 @@ namespace Klyte.AssetColorExpander
         public const uint BUILDINGS_OFFSET_SEED = PropManager.MAX_PROP_COUNT;
         public const uint NETS_OFFSET_SEED = PropManager.MAX_PROP_COUNT + (BuildingManager.MAX_BUILDING_COUNT << 8);
 
+        public static Color PreGetColor_Internal(ref Randomizer randomizer, uint randomSeed, PropInfo info, ItemClass parentItemClass, BuildingInfo buildingInfo, NetInfo netInfo, Vector3 position, ref Color?[] arr, ushort idx)
+        {
+            Color resultClr = default;
+            return !ACEColorGenUtils.GetColorGeneric(
+                           ref resultClr,
+                           idx,
+                           ref arr,
+                           InfoManager.instance.CurrentMode, ColorParametersGetter(info, position), Accepts(parentItemClass, buildingInfo, netInfo), (x, y) => randomSeed)
+                ? resultClr
+                : info.GetColor(ref randomizer);
+        }
 
-        public static Color PreGetColorPropId(PropInfo info, ref Randomizer randomizer, ushort propId) => PreGetColor(ref randomizer, propId, info, null, null, null, PropManager.instance.m_props.m_buffer[propId].Position, ref ColorCachePlaced[propId], ref RulesUpdatedPlaced[propId]);
+        private static ColorParametersGetter<PropAssetFolderRuleXml, PropCityDataRuleXml, PropInfo> ColorParametersGetter(PropInfo propInfo, Vector3 position) =>
+             (ushort id,
+             out ACERulesetContainer<PropCityDataRuleXml> rulesGlobal,
+             out Dictionary<string, PropAssetFolderRuleXml> assetRules,
+             out PropInfo info,
+             out Vector3 pos) =>
+             {
+                 info = propInfo;
+                 assetRules = AssetColorExpanderMod.Controller?.LoadedConfiguration.m_colorConfigDataProps;
+                 rulesGlobal = ACEPropConfigRulesData.Instance.Rules;
+                 pos = position;
+             };
+        private static RuleValidator<PropCityDataRuleXml, PropInfo> Accepts(ItemClass parentItemClass, BuildingInfo buildingInfo, NetInfo netInfo) => (id, x, district, park, info) => x.Accepts(info.m_class, parentItemClass, info.name, buildingInfo?.name, netInfo?.name, district, park);
+
+
+        public static void AfterReleaseProp(ushort prop) => ColorCachePlaced[prop] = null;
+        public static Color PreGetColorPropId(PropInfo info, ref Randomizer randomizer, ushort propId) => PreGetColor_Internal(ref randomizer, propId, info, null, null, null, PropManager.instance.m_props.m_buffer[propId].Position, ref ColorCachePlaced, propId);
         public static Color PreGetColorBuildingProps(PropInfo info, ref Randomizer randomizer, BuildingAI ai, ref Building data, ushort buildingId, int i)
         {
-            if (RulesUpdatedBuilding[buildingId] == null)
+            if (ColorCacheBuilding[buildingId] == null)
             {
-                RulesUpdatedBuilding[buildingId] = new bool[ai.m_info.m_props.Length];
                 ColorCacheBuilding[buildingId] = new Color?[ai.m_info.m_props.Length];
             }
-            if (i >= RulesUpdatedBuilding[buildingId].Length)
+            if (i >= ColorCacheBuilding[buildingId].Length)
             {
-                if (ai.m_info.m_props.Length != RulesUpdatedBuilding[buildingId]?.Length)
-                {
-                    RulesUpdatedBuilding[buildingId] = new bool[ai.m_info.m_props.Length];
-                }
                 if (ai.m_info.m_props.Length != ColorCacheBuilding[buildingId]?.Length)
                 {
                     ColorCacheBuilding[buildingId] = new Color?[ai.m_info.m_props.Length];
                 }
-                if (i >= RulesUpdatedBuilding[buildingId].Length)
+                if (i >= ColorCacheBuilding[buildingId].Length)
                 {
                     LogUtils.DoWarnLog($"INVALID PROP IDX({i}) FOR BUILDING {buildingId} ({ai.m_info} - PROPS={ai.m_info.m_props.Length})");
                     return default;
                 }
             }
-            return PreGetColor(ref randomizer, (uint)(BUILDINGS_OFFSET_SEED + (buildingId << 8) + i), info, ai.m_info.m_class, ai.m_info, null, data.m_position, ref ColorCacheBuilding[buildingId][i], ref RulesUpdatedBuilding[buildingId][i]);
+            return PreGetColor_Internal(ref randomizer, (uint)(BUILDINGS_OFFSET_SEED + (buildingId << 8) + i), info, ai.m_info.m_class, ai.m_info, null, data.m_position, ref ColorCacheBuilding[buildingId], (ushort)i);
         }
 
-
-        //   public static Color PreGetColorNetProps(PropInfo info, ref Randomizer randomizer, ref NetLane netLane) => default;//, ushort segmentId, uint laneId, int propId, float position) => default;//
-
-
-        public static Color PreGetColorNetProps(PropInfo info, ref Randomizer randomizer, ref NetLane netLane, ushort segmentId, uint laneId, NetInfo.Lane laneInfo, int propId, float position)
+        public static Color PreGetColorNetProps(PropInfo info, ref Randomizer randomizer, ushort segmentId, uint laneId, NetInfo.Lane laneInfo, int propId, float position)
         {
 
-            if (RulesUpdatedNet[laneId] == null || RulesUpdatedNet[laneId].Length != (laneInfo.m_laneProps?.m_props?.Length ?? 0))
+            if (ColorCacheNet[laneId] == null || ColorCacheNet[laneId].Length != (laneInfo.m_laneProps?.m_props?.Length ?? 0))
             {
                 int propCount = laneInfo.m_laneProps?.m_props?.Length ?? 0;
-                RulesUpdatedNet[laneId] = new bool[propCount][];
                 ColorCacheNet[laneId] = new Color?[propCount][];
                 for (int j = 0; j < propCount; j++)
                 {
-                    RulesUpdatedNet[laneId][j] = new bool[8];
                     ColorCacheNet[laneId][j] = new Color?[8];
                 }
             }
             NetInfo netInfo = NetManager.instance.m_segments.m_buffer[segmentId].Info;
             int idx = Mathf.Max(0, Mathf.Min(7, Mathf.FloorToInt(position * 8)));
-            return PreGetColor(ref randomizer, (uint)(NETS_OFFSET_SEED + (segmentId << 19) + (laneId << 11) + (propId << 3) + Mathf.FloorToInt(position * 8)), info, netInfo.m_class, null, netInfo, netLane.m_bezier.Position(position), ref ColorCacheNet[laneId][propId][idx], ref RulesUpdatedNet[laneId][propId][idx]);
-
+            return PreGetColor_Internal(ref randomizer,
+                (uint)(NETS_OFFSET_SEED + (segmentId << 19) + (laneId << 11) + (propId << 3) + Mathf.FloorToInt(position * 8)),
+                info, netInfo.m_class, null, netInfo, NetManager.instance.m_lanes.m_buffer[laneId].m_bezier.Position(position), ref ColorCacheNet[laneId][propId], (ushort)idx);
         }
     }
 }

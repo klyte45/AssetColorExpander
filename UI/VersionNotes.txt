@@ -1,14 +1,7 @@
-﻿Welcome to Asset Color expander!
+﻿<color yellow>v2 - 23/MAY/21</color>
 
-This mod allows you to expand the configurations about colors in buildings, props and vehicles. Explore the new ways of coloring the assets by reading the useful tutorials at "?" buttons in the game.
-
-Also you can export data for future use, and create generic rules for all your new savegames (or old ones without configuration) by using the Global configuration export.
-
-<color yellow>For asset makers:</color> Export the files to bundle with the asset and share the setting with the mod at Steam Workshop!
-
-Enjoy! =V
-
-
-<color yellow>Update r1:</color> Fixed some props in buildings not getting the right color (and spamming the game logs)
-<color yellow>Update r3:</color> Added <color cyan>More Vehicles</color> support!
-<color yellow>Update r4:</color> Fixed error that was preventing segments to be drawn in screen (and generating exception log)
+- NEW: Integration with Addresses Mod to paint the assets with the chosen Addresses' district color
+- UI improved
+- Performance improved
+- Cache related bugs fixed
+- Fixed font glitches caused by K45 mods
